@@ -1,0 +1,30 @@
+{
+  "name": "streetvoice",
+  "version": "1.0.0",
+  "description": "StreetVoice is a community-driven civic issue reporting and monitoring platform. It uses AI to automatically categorize reported issues, assess their severity, detect duplicates, and route them to relevant authorities. The platform also incorporates citizen gamification (XP, badges, levels) to incentivize community action and verify reports.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "axios": "^1.18.1",
+    "firebase": "^12.15.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.21.0",
+    "react-hot-toast": "^2.6.0",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.18.0",
+    "recharts": "^3.9.0",
+    "socket.io-client": "^4.8.3"
+  }
+}

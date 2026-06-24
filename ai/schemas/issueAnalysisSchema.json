@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IssueAnalysisResult",
+  "type": "OBJECT",
+  "properties": {
+    "category": {
+      "type": "STRING",
+      "description": "The classified civic issue category name"
+    },
+    "severity": {
+      "type": "STRING",
+      "enum": ["Low", "Medium", "High", "Critical"],
+      "description": "Estimated hazard/urgency rating"
+    },
+    "spamLikelihood": {
+      "type": "NUMBER",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Likelihood that the report is spam/junk"
+    },
+    "confidence": {
+      "type": "NUMBER",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Confidence factor in category classification"
+    },
+    "reasoning": {
+      "type": "STRING",
+      "description": "Short explanation of the classification decisions"
+    },
+    "tags": {
+      "type": "ARRAY",
+      "items": {
+        "type": "STRING"
+      },
+      "description": "Extracted labels describing the issue details"
+    }
+  },
+  "required": ["category", "severity", "spamLikelihood", "confidence", "reasoning"]
+}
