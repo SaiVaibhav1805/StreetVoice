@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-const protect = (req, res, next) => {
+export const protect = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -18,11 +18,9 @@ const protect = (req, res, next) => {
   }
 };
 
-const authorityOnly = (req, res, next) => {
+export const authorityOnly = (req, res, next) => {
   if (req.user.role !== 'authority' && req.user.role !== 'moderator') {
     return res.status(403).json({ message: 'Authority access only' });
   }
   next();
 };
-
-module.exports = { protect, authorityOnly };

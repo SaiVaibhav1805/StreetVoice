@@ -2,90 +2,71 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import dotenv from 'dotenv';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-// Configurations
-import connectDB from './config/db.js';
-import { initFirebase } from './config/firebase.js';
-import { initCloudinary } from './config/cloudinary.js';
-
-// Middlewares
-import errorHandler from './middleware/errorHandler.js';
-
-// Routers
-import authRoutes from './routes/auth.js';
-import issueRoutes from './routes/issues.js';
-import userRoutes from './routes/users.js';
-import verifyRoutes from './routes/verify.js';
-import dashboardRoutes from './routes/dashboard.js';
-import aiRoutes from './routes/ai.js';
-import notificationRoutes from './routes/notifications.js';
-
-// Environment load
 dotenv.config();
+
+import connectDB from './config/db.js';
+import errorHandler from './middleware/errorHandler.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io initialization
+// Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  },
+    origin: process.env.CLIENT_URL,
+    methods: ['GET', 'POST']
+  }
 });
 
-app.set('socketio', io);
+// Make io accessible in controllers later
+app.set('io', io);
 
-// Ensure uploads folder exists
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Middleware stack
-app.use(cors());
+// Middleware
+app.use(helmet());
+app.use(cors({ origin: process.env.CLIENT_URL }));
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(uploadDir));
 
-// Route definitions
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/issues', issueRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/verify', verifyRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/notifications', notificationRoutes);
 
-// Base route
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'StreetVoice core services are operational.' });
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, message: 'StreetVoice API is running' });
 });
 
-// Error handling middleware
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: 'Route not found' });
+});
+
+// Error handler (must be last)
 app.use(errorHandler);
 
-// Database and Service Connections
-connectDB();
-initFirebase();
-initCloudinary();
-
-// Socket Connection Handler
+// Socket.io connection
 io.on('connection', (socket) => {
-  console.log(`New socket.io client connection: ${socket.id}`);
-  
+  console.log(`Socket connected: ${socket.id}`);
+
+  socket.on('join_issue', (issueId) => {
+    socket.join(issueId);
+  });
+
   socket.on('disconnect', () => {
-    console.log(`Socket client disconnected: ${socket.id}`);
+    console.log(`Socket disconnected: ${socket.id}`);
   });
 });
 
+// Start
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`StreetVoice API server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+
+connectDB().then(() => {
+  server.listen(PORT, () => {
+    console.log(`StreetVoice server running on port ${PORT}`);
+  });
 });

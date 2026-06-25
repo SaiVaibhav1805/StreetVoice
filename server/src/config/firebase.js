@@ -1,12 +1,31 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import admin from 'firebase-admin';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-};
+try {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+  if (projectId && clientEmail && privateKey) {
+    // Replace escaped newlines if present in environment variable
+    privateKey = privateKey.replace(/\\n/g, '\n');
+    
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      }),
+    });
+    console.log('Firebase Admin SDK initialized successfully');
+  } else {
+    console.warn('Firebase Admin SDK credentials not fully set. Initializing with default environment configuration.');
+    admin.initializeApp();
+  }
+} catch (error) {
+  if (error.code !== 'app/duplicate-app') {
+    console.error('Firebase Admin SDK initialization error:', error);
+  }
+}
+
+export const getFirebase = () => admin;
+export default admin;

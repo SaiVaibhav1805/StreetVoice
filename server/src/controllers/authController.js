@@ -1,10 +1,10 @@
-const admin = require('../config/firebase');
-const User = require('../models/User');
-const jwt = require('jsonwebtoken');
+import admin from '../config/firebase.js';
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
 
 // Called after Firebase OTP is verified on client
 // Client sends the Firebase idToken to us
-const verifyAndLogin = async (req, res) => {
+export const verifyAndLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
 
@@ -61,7 +61,7 @@ const verifyAndLogin = async (req, res) => {
 };
 
 // Update profile (name, ward) — called after first login
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { name, ward } = req.body;
     const user = await User.findByIdAndUpdate(
@@ -76,7 +76,7 @@ const updateProfile = async (req, res) => {
 };
 
 // Get current user
-const getMe = async (req, res) => {
+export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-__v');
     res.status(200).json({ success: true, user });
@@ -84,5 +84,3 @@ const getMe = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch user' });
   }
 };
-
-module.exports = { verifyAndLogin, updateProfile, getMe };
