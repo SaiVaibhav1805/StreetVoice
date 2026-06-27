@@ -1,10 +1,21 @@
-import express from 'express';
+const express = require('express');
 const router = express.Router();
-import { verifyAndLogin, updateProfile, getMe } from '../controllers/authController.js';
-import { protect } from '../middleware/authMiddleware.js';
+const {
+    getAllIssues,
+    updateIssueStatus,
+    assignIssue,
+    getAuthorityStats,
+    getStatusHistory
+} = require('../controllers/authorityController');
+const { protect, authorityOnly } = require('../middleware/authMiddleware');
 
-router.post('/verify', verifyAndLogin);           // POST /api/auth/verify
-router.put('/profile', protect, updateProfile);   // PUT  /api/auth/profile
-router.get('/me', protect, getMe);                // GET  /api/auth/me
+// All routes require auth + authority role
+router.use(protect, authorityOnly);
 
-export default router;
+router.get('/issues', getAllIssues);
+router.get('/stats', getAuthorityStats);
+router.patch('/issues/:id/status', updateIssueStatus);
+router.patch('/issues/:id/assign', assignIssue);
+router.get('/issues/:id/history', getStatusHistory);
+
+module.exports = router;

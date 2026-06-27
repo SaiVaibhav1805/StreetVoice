@@ -1,11 +1,10 @@
-import express from 'express';
-import { submitVerification, getVerificationsForIssue } from '../controllers/verifyController.js';
-import { protect } from '../middleware/authMiddleware.js';
+const express = require('express');
+const router = express.Router({ mergeParams: true }); // mergeParams to access :id
+const { verifyIssue, getVerifications } = require('../controllers/verifyController');
+const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
-const router = express.Router();
+router.post('/', protect, upload.single('photo'), verifyIssue);
+router.get('/', protect, getVerifications);
 
-router.route('/:issueId')
-  .get(protect, getVerificationsForIssue)
-  .post(protect, submitVerification);
-
-export default router;
+module.exports = router;

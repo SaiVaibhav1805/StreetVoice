@@ -1,38 +1,31 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-const VerificationSchema = new mongoose.Schema(
-  {
-    issue: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Issue',
-      required: true,
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ['verified', 'rejected'],
-      required: true,
-    },
-    comments: {
-      type: String,
-      trim: true,
-    },
-    coordinates: {
-      type: [Number], // [longitude, latitude] of where verification was submitted (to verify GPS match)
-    },
-    isGPSTrusted: {
-      type: Boolean,
-      default: false,
-    },
+const verificationSchema = new mongoose.Schema({
+  issue: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Issue',
+    required: true
   },
-  {
-    timestamps: true,
+  verifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  photo: {
+    url: String,
+    cloudinaryId: String
+  },
+  comment: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  location: {
+    coordinates: [Number] // [lng, lat] of verifier
   }
-);
+}, { timestamps: true });
 
-const Verification = mongoose.model('Verification', VerificationSchema);
-export default Verification;
+// One verification per user per issue
+verificationSchema.index({ issue: 1, verifiedBy: 1 }, { unique: true });
+
+module.exports = mongoose.model('Verification', verificationSchema);

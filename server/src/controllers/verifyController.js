@@ -1,104 +1,95 @@
-import Issue from '../models/Issue.js';
-import Verification from '../models/Verification.js';
-import User from '../models/User.js';
-import { checkAndAwardGamification } from '../services/gamificationService.js';
+const Verification = require('../models/Verification');
+const Issue = require('../models/Issue');
+const User = require('../models/User');
+const { uploadImage } = require('../services/imageService');
 
-export const submitVerification = async (req, res, next) => {
+// POST /api/issues/:id/verify
+const verifyIssue = async (req, res) => {
   try {
-    const { status, comments, coordinates } = req.body;
-    const { issueId } = req.params;
+    const issueId = req.params.id;
+    const userId = req.user.userId;
 
     const issue = await Issue.findById(issueId);
     if (!issue) {
-      return res.status(404).json({ message: 'Issue not found' });
+      return res.status(404).json({ success: false, message: 'Issue not found' });
     }
 
-    // Check if user already verified this issue
-    const alreadyVerified = issue.verifications.some(
-      (v) => v.user.toString() === req.user._id.toString()
-    );
-    if (alreadyVerified) {
-      return res.status(400).json({ message: 'You have already verified this issue.' });
+    // Can't verify your own issue
+    if (issue.reportedBy.toString() === userId) {
+      return res.status(400).json({ success: false, message: "You can't verify your own issue" });
     }
 
-    // Check distance between verification submitting position and issue pinned position
-    let isGPSTrusted = false;
-    if (coordinates && issue.location && issue.location.coordinates) {
-      const [issueLng, issueLat] = issue.location.coordinates;
-      const [verLng, verLat] = coordinates;
-
-      // Simple haversine approximation
-      const R = 6371; // km
-      const dLat = ((verLat - issueLat) * Math.PI) / 180;
-      const dLon = ((verLng - issueLng) * Math.PI) / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((issueLat * Math.PI) / 180) *
-          Math.cos((verLat * Math.PI) / 180) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = R * c;
-
-      if (distance <= 0.2) {
-        // Within 200m range
-        isGPSTrusted = true;
-      }
+    // Already verified?
+    const existing = await Verification.findOne({ issue: issueId, verifiedBy: userId });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'You have already verified this issue' });
     }
 
-    // Save Verification entry
+    // Upload verification photo if provided
+    let photo = {};
+    if (req.file) {
+      photo = await uploadImage(req.file.buffer, req.file.mimetype);
+    }
+
     const verification = await Verification.create({
       issue: issueId,
-      user: req.user._id,
-      status,
-      comments,
-      coordinates,
-      isGPSTrusted,
+      verifiedBy: userId,
+      photo,
+      comment: req.body.comment || '',
+      location: {
+        coordinates: [
+          parseFloat(req.body.longitude || 0),
+          parseFloat(req.body.latitude || 0)
+        ]
+      }
     });
 
-    // Update Issue Verification lists
-    issue.verifications.push({
-      user: req.user._id,
-      status,
-      comments,
-    });
-    issue.verificationsCount = issue.verifications.length;
+    // Increment verification count on issue
+    issue.verificationCount += 1;
 
-    // Auto-promote status to verified if counts threshold is met
-    if (issue.verificationsCount >= 3 && issue.status === 'pending') {
+    // Auto-escalate to verified status at 3+ verifications
+    if (issue.verificationCount >= 3 && issue.status === 'reported') {
       issue.status = 'verified';
-      issue.history.push({
-        status: 'verified',
-        comments: 'Auto-promoted to verified status by community consensus.',
-        user: req.user._id,
-      });
+
+      // Emit socket event
+      const io = req.app.get('io');
+      io.to(issueId).emit('issue_updated', { status: 'verified', issueId });
     }
 
-    const savedIssue = await issue.save();
+    await issue.save();
 
-    // Award XP and achievements
-    await checkAndAwardGamification(req.user._id, 'verify');
+    // Award XP to verifier
+    await User.findByIdAndUpdate(userId, {
+      $inc: { xp: 5, issuesVerified: 1 }
+    });
 
-    // Broadcast update
-    const io = req.app.get('socketio');
-    if (io) {
-      io.emit('issueUpdated', savedIssue);
-    }
+    res.status(201).json({
+      success: true,
+      verificationCount: issue.verificationCount,
+      status: issue.status,
+      message: `Issue verified! +5 XP earned${issue.status === 'verified' ? ' — Issue is now Verified status! 🎉' : ''}`
+    });
 
-    res.status(201).json(savedIssue);
   } catch (error) {
-    next(error);
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: 'Already verified' });
+    }
+    console.error('Verify error:', error);
+    res.status(500).json({ success: false, message: 'Verification failed' });
   }
 };
 
-export const getVerificationsForIssue = async (req, res, next) => {
+// GET /api/issues/:id/verifications
+const getVerifications = async (req, res) => {
   try {
-    const verifications = await Verification.find({ issue: req.params.issueId })
-      .populate('user', 'name role level');
-    res.json(verifications);
+    const verifications = await Verification.find({ issue: req.params.id })
+      .populate('verifiedBy', 'name ward')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, verifications });
   } catch (error) {
-    next(error);
+    res.status(500).json({ success: false, message: 'Failed to fetch verifications' });
   }
 };
 
-export default { submitVerification, getVerificationsForIssue };
+module.exports = { verifyIssue, getVerifications };

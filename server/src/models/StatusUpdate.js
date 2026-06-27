@@ -1,34 +1,35 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-const StatusUpdateSchema = new mongoose.Schema(
-  {
-    issue: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Issue',
-      required: true,
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // The authority or mod making updates
-      required: true,
-    },
-    previousStatus: {
-      type: String,
-      required: true,
-    },
-    newStatus: {
-      type: String,
-      required: true,
-    },
-    comments: {
-      type: String,
-      trim: true,
-    },
+const statusUpdateSchema = new mongoose.Schema({
+  issue: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Issue',
+    required: true
   },
-  {
-    timestamps: true,
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  previousStatus: {
+    type: String,
+    enum: ['reported', 'verified', 'assigned', 'in_progress', 'resolved'],
+    required: true
+  },
+  newStatus: {
+    type: String,
+    enum: ['reported', 'verified', 'assigned', 'in_progress', 'resolved'],
+    required: true
+  },
+  note: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  estimatedResolution: {
+    type: Date,
+    default: null
   }
-);
+}, { timestamps: true });
 
-const StatusUpdate = mongoose.model('StatusUpdate', StatusUpdateSchema);
-export default StatusUpdate;
+module.exports = mongoose.model('StatusUpdate', statusUpdateSchema);

@@ -1,32 +1,19 @@
-import Issue from '../models/Issue.js';
+const Issue = require('../models/Issue');
 
-/**
- * Checks for existing unresolved issues of the same category within a 100-meter radius
- */
-export const runDeduplicationCheck = async (coordinates, category) => {
-  try {
-    const [longitude, latitude] = coordinates;
-    const radiusInMeters = 100;
+// Check if a similar issue exists within 50 meters
+const findNearbyDuplicate = async (longitude, latitude, category) => {
+  const nearby = await Issue.findOne({
+    location: {
+      $near: {
+        $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+        $maxDistance: 50 // meters
+      }
+    },
+    category,
+    status: { $ne: 'resolved' }
+  }).populate('reportedBy', 'name');
 
-    const nearDuplicates = await Issue.find({
-      category,
-      status: { $in: ['pending', 'verified', 'in progress'] },
-      location: {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude],
-          },
-          $maxDistance: radiusInMeters,
-        },
-      },
-    });
-
-    return nearDuplicates.length > 0;
-  } catch (error) {
-    console.error('Deduplication filter failure:', error.message);
-    return false; // Fail open to avoid blocking reports
-  }
+  return nearby || null;
 };
 
-export default { runDeduplicationCheck };
+module.exports = { findNearbyDuplicate };

@@ -1,25 +1,31 @@
-import cloudinary from '../config/cloudinary.js';
+const cloudinary = require('../config/cloudinary');
 
-export const uploadToCloud = async (filePath) => {
-  if (!cloudinary || !cloudinary.config().cloud_name) {
-    console.warn('Cloudinary config missing. Emulating cloud upload URL.');
-    return filePath; // Fallback to local url path
-  }
+const uploadImage = async (fileBuffer, mimetype) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'streetvoice/issues',
+        resource_type: 'auto',
+        transformation: [{ quality: 'auto', fetch_format: 'auto' }]
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve({
+          url: result.secure_url,
+          cloudinaryId: result.public_id
+        });
+      }
+    );
+    stream.end(fileBuffer);
+  });
+};
 
+const deleteImage = async (cloudinaryId) => {
   try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder: 'streetvoice/issues',
-      transformation: [
-        { width: 800, height: 600, crop: 'limit' },
-        { quality: 'auto' },
-        { fetch_format: 'auto' },
-      ],
-    });
-    return result.secure_url;
+    await cloudinary.uploader.destroy(cloudinaryId);
   } catch (error) {
-    console.error('Failed uploading image to Cloudinary:', error.message);
-    throw new Error('Image upload failed');
+    console.error('Cloudinary delete error:', error);
   }
 };
 
-export default { uploadToCloud };
+module.exports = { uploadImage, deleteImage };

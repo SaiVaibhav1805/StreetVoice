@@ -1,86 +1,204 @@
-import admin from '../config/firebase.js';
-import User from '../models/User.js';
-import jwt from 'jsonwebtoken';
+const Issue = require('../models/Issue');
+const StatusUpdate = require('../models/StatusUpdate');
+const Comment = require('../models/Comment');
+const User = require('../models/User');
 
-// Called after Firebase OTP is verified on client
-// Client sends the Firebase idToken to us
-export const verifyAndLogin = async (req, res) => {
+// GET /api/authority/issues — all issues for authority view
+const getAllIssues = async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const {
+      status, category, severity,
+      ward, page = 1, limit = 20
+    } = req.query;
 
-    if (!idToken) {
-      return res.status(400).json({ message: 'idToken is required' });
-    }
+    const query = {};
+    if (status) query.status = status;
+    if (category) query.category = category;
+    if (severity) query.severity = severity;
+    if (ward) query['location.ward'] = new RegExp(ward, 'i');
 
-    // Verify token with Firebase Admin
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const phone = decodedToken.phone_number;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    if (!phone) {
-      return res.status(400).json({ message: 'Phone number not found in token' });
-    }
-
-    // Find or create user in our DB
-    let user = await User.findOne({ phone });
-
-    if (!user) {
-      // First time login — create account
-      user = await User.create({ phone });
-    }
-
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
-
-    // Issue our own JWT
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    const [issues, total] = await Promise.all([
+      Issue.find(query)
+        .populate('reportedBy', 'name phone ward')
+        .populate('assignedTo', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Issue.countDocuments(query)
+    ]);
 
     res.status(200).json({
       success: true,
-      token,
-      user: {
-        _id: user._id,
-        phone: user.phone,
-        name: user.name,
-        role: user.role,
-        ward: user.ward,
-        xp: user.xp,
-        badges: user.badges,
-        isNewUser: !user.name  // flag to show profile setup screen
-      }
+      issues,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit))
     });
 
   } catch (error) {
-    console.error('Auth error:', error);
-    res.status(401).json({ message: 'Invalid or expired token' });
+    console.error('Authority fetch error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch issues' });
   }
 };
 
-// Update profile (name, ward) — called after first login
-export const updateProfile = async (req, res) => {
+// PATCH /api/authority/issues/:id/status — update issue status
+const updateIssueStatus = async (req, res) => {
   try {
-    const { name, ward } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.user.userId,
-      { name, ward },
+    const { status, note, estimatedResolution } = req.body;
+    const issueId = req.params.id;
+
+    const validStatuses = ['reported', 'verified', 'assigned', 'in_progress', 'resolved'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const issue = await Issue.findById(issueId);
+    if (!issue) {
+      return res.status(404).json({ success: false, message: 'Issue not found' });
+    }
+
+    const previousStatus = issue.status;
+
+    // Create status update record
+    await StatusUpdate.create({
+      issue: issueId,
+      updatedBy: req.user.userId,
+      previousStatus,
+      newStatus: status,
+      note: note || '',
+      estimatedResolution: estimatedResolution || null
+    });
+
+    // Update issue
+    issue.status = status;
+    if (estimatedResolution) issue.estimatedResolution = estimatedResolution;
+    if (status === 'resolved') issue.resolvedAt = new Date();
+
+    await issue.save();
+
+    // Post authority comment if note provided
+    if (note?.trim()) {
+      await Comment.create({
+        issue: issueId,
+        author: req.user.userId,
+        text: `[Status: ${previousStatus} → ${status}] ${note}`,
+        isAuthorityUpdate: true
+      })
+
+      await Issue.findByIdAndUpdate(issueId, { $inc: { commentCount: 1 } });
+    }
+
+    // Emit real-time update
+    const io = req.app.get('io');
+    io.to(issueId).emit('issue_updated', {
+      issueId,
+      status,
+      previousStatus,
+      note
+    });
+
+    res.status(200).json({
+      success: true,
+      issue,
+      message: `Status updated to ${status}`
+    });
+
+  } catch (error) {
+    console.error('Status update error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update status' });
+  }
+};
+
+// PATCH /api/authority/issues/:id/assign — assign to authority user
+const assignIssue = async (req, res) => {
+  try {
+    const issue = await Issue.findByIdAndUpdate(
+      req.params.id,
+      {
+        assignedTo: req.user.userId,
+        status: 'assigned'
+      },
       { new: true }
-    );
-    res.status(200).json({ success: true, user });
+    ).populate('assignedTo', 'name');
+
+    if (!issue) {
+      return res.status(404).json({ success: false, message: 'Issue not found' });
+    }
+
+    const io = req.app.get('io');
+    io.to(req.params.id).emit('issue_updated', {
+      issueId: req.params.id,
+      status: 'assigned'
+    });
+
+    res.status(200).json({ success: true, issue });
   } catch (error) {
-    res.status(500).json({ message: 'Profile update failed' });
+    res.status(500).json({ success: false, message: 'Failed to assign issue' });
   }
 };
 
-// Get current user
-export const getMe = async (req, res) => {
+// GET /api/authority/stats — summary stats for authority
+const getAuthorityStats = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-__v');
-    res.status(200).json({ success: true, user });
+    const [
+      total, reported, verified,
+      inProgress, resolved, critical
+    ] = await Promise.all([
+      Issue.countDocuments(),
+      Issue.countDocuments({ status: 'reported' }),
+      Issue.countDocuments({ status: 'verified' }),
+      Issue.countDocuments({ status: 'in_progress' }),
+      Issue.countDocuments({ status: 'resolved' }),
+      Issue.countDocuments({ severity: 'critical' })
+    ]);
+
+    // Category breakdown
+    const categoryBreakdown = await Issue.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    // Ward breakdown
+    const wardBreakdown = await Issue.aggregate([
+      { $group: { _id: '$location.ward', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        total, reported, verified,
+        inProgress, resolved, critical,
+        resolutionRate: total > 0 ? Math.round((resolved / total) * 100) : 0,
+        categoryBreakdown,
+        wardBreakdown
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch user' });
+    res.status(500).json({ success: false, message: 'Failed to fetch stats' });
   }
+};
+
+// GET /api/authority/issues/:id/history
+const getStatusHistory = async (req, res) => {
+  try {
+    const history = await StatusUpdate.find({ issue: req.params.id })
+      .populate('updatedBy', 'name role')
+      .sort({ createdAt: 1 });
+
+    res.status(200).json({ success: true, history });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch history' });
+  }
+};
+
+module.exports = {
+  getAllIssues,
+  updateIssueStatus,
+  assignIssue,
+  getAuthorityStats,
+  getStatusHistory
 };

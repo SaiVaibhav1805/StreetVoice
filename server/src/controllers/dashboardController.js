@@ -1,62 +1,111 @@
-import Issue from '../models/Issue.js';
+const Issue = require('../models/Issue');
+const User = require('../models/User');
 
-export const getStats = async (req, res, next) => {
+const getPublicDashboard = async (req, res) => {
   try {
-    const totalReported = await Issue.countDocuments();
-    const totalResolved = await Issue.countDocuments({ status: 'resolved' });
-    const totalActive = await Issue.countDocuments({ status: { $in: ['pending', 'verified', 'in progress'] } });
-    
-    // Average resolution time mockup calculation
-    const resolvedIssues = await Issue.find({ status: 'resolved' });
-    let totalResponseTime = 0;
-    
-    resolvedIssues.forEach(issue => {
-      const start = new Date(issue.createdAt);
-      const endHistory = issue.history.find(h => h.status === 'resolved');
-      const end = endHistory ? new Date(endHistory.createdAt) : new Date(issue.updatedAt);
-      totalResponseTime += Math.abs(end - start) / 36e5; // hours
-    });
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const averageResolutionTime = resolvedIssues.length > 0 
-      ? Math.round(totalResponseTime / resolvedIssues.length) 
-      : 36; // fallback 36 hours
+    const [
+      totalIssues,
+      resolvedIssues,
+      thisMonthIssues,
+      thisMonthResolved,
+      statusBreakdown,
+      categoryBreakdown,
+      severityBreakdown,
+      topWards,
+      topReporters,
+      recentResolved,
+      dailyTrend
+    ] = await Promise.all([
+      Issue.countDocuments(),
+      Issue.countDocuments({ status: 'resolved' }),
+      Issue.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
+      Issue.countDocuments({ status: 'resolved', resolvedAt: { $gte: thirtyDaysAgo } }),
 
-    const verificationRate = totalReported > 0 
-      ? Math.round(((totalReported - await Issue.countDocuments({ status: 'rejected' })) / totalReported) * 100)
-      : 100;
+      Issue.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
 
-    res.json({
-      totalReported,
-      totalResolved,
-      totalActive,
-      averageResolutionTime,
-      verificationRate,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+      Issue.aggregate([
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ]),
 
-export const getWardReports = async (req, res, next) => {
-  try {
-    const wardStats = await Issue.aggregate([
-      {
-        $group: {
-          _id: '$ward',
-          reported: { $sum: 1 },
-          resolved: {
-            $sum: {
-              $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0],
-            },
-          },
+      Issue.aggregate([
+        { $group: { _id: '$severity', count: { $sum: 1 } } }
+      ]),
+
+      Issue.aggregate([
+        { $group: { _id: '$location.ward', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ]),
+
+      User.find()
+        .sort({ issuesReported: -1 })
+        .limit(5)
+        .select('name ward issuesReported xp badges'),
+
+      Issue.find({ status: 'resolved' })
+        .sort({ resolvedAt: -1 })
+        .limit(5)
+        .select('title category resolvedAt location'),
+
+      // Daily trend last 7 days
+      Issue.aggregate([
+        { $match: { createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            count: { $sum: 1 }
+          }
         },
-      },
-      { $sort: { _id: 1 } },
+        { $sort: { _id: 1 } }
+      ])
     ]);
-    res.json(wardStats);
+
+    // Avg resolution time
+    const resolvedWithTime = await Issue.find({
+      status: 'resolved',
+      resolvedAt: { $exists: true }
+    }).select('createdAt resolvedAt');
+
+    let avgResolutionHours = 0;
+    if (resolvedWithTime.length > 0) {
+      const totalHours = resolvedWithTime.reduce((sum, i) => {
+        return sum + ((new Date(i.resolvedAt) - new Date(i.createdAt)) / 3600000);
+      }, 0);
+      avgResolutionHours = Math.round(totalHours / resolvedWithTime.length);
+    }
+
+    res.status(200).json({
+      success: true,
+      dashboard: {
+        summary: {
+          totalIssues,
+          resolvedIssues,
+          thisMonthIssues,
+          thisMonthResolved,
+          resolutionRate: totalIssues > 0
+            ? Math.round((resolvedIssues / totalIssues) * 100)
+            : 0,
+          avgResolutionHours
+        },
+        statusBreakdown,
+        categoryBreakdown,
+        severityBreakdown,
+        topWards,
+        topReporters,
+        recentResolved,
+        dailyTrend
+      }
+    });
+
   } catch (error) {
-    next(error);
+    console.error('Dashboard error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch dashboard data' });
   }
 };
 
-export default { getStats, getWardReports };
+module.exports = { getPublicDashboard };

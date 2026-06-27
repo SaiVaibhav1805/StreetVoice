@@ -5,6 +5,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+const aiRoutes = require('./routes/ai');
+// ...
+app.use('/api/ai', aiRoutes);
 
 dotenv.config();
 
@@ -14,6 +17,31 @@ import authRoutes from './routes/auth.js';
 
 const app = express();
 const server = http.createServer(app);
+const issueRoutes = require('./routes/issues');
+const aiRoutes = require('./routes/ai');
+const verifyRoutes = require('./routes/verify');
+const commentRoutes = require('./routes/comments');
+const authorityRoutes = require('./routes/authority');
+const dashboardRoutes = require('./routes/dashboard');
+
+app.use('/api/authority', authorityRoutes);
+// Nested under issues
+app.use('/api/issues/:id/verifications', verifyRoutes);
+app.use('/api/issues/:id/comments', commentRoutes);
+
+app.use('/api/issues', issueRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
+const startEscalationJob = require('./jobs/escalationJob');
+const startPredictionJob = require('./jobs/predictionJob');
+const startReminderJob = require('./jobs/reminderJob');
+
+// Start background jobs
+startEscalationJob();
+startPredictionJob();
+startReminderJob();
 
 // Socket.io setup
 const io = new Server(server, {

@@ -1,94 +1,97 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-const IssueSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    category: {
-      type: String,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'verified', 'in progress', 'resolved', 'rejected'],
-      default: 'pending',
-    },
-    reporter: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    location: {
-      type: {
-        type: String,
-        enum: ['Point'],
-        required: true,
-      },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        required: true,
-      },
-    },
-    ward: {
-      type: Number,
-    },
-    images: [
-      {
-        type: String,
-      },
-    ],
-    upvotes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
-    upvotesCount: {
-      type: Number,
-      default: 0,
-    },
-    verifications: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        status: { type: String, enum: ['verified', 'rejected'] },
-        comments: String,
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
-    verificationsCount: {
-      type: Number,
-      default: 0,
-    },
-    aiAnalysis: {
-      category: String,
-      severity: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'] },
-      spamLikelihood: Number,
-      isDuplicate: Boolean,
-      confidence: Number,
-    },
-    history: [
-      {
-        status: String,
-        comments: String,
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
+const issueSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true
   },
-  {
-    timestamps: true,
-  }
-);
+  description: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  category: {
+    type: String,
+    enum: ['pothole', 'water_leakage', 'streetlight', 'garbage', 'sewage', 'road_damage', 'encroachment', 'other'],
+    required: true
+  },
+  severity: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'critical'],
+    default: 'medium'
+  },
+  status: {
+    type: String,
+    enum: ['reported', 'verified', 'assigned', 'in_progress', 'resolved'],
+    default: 'reported'
+  },
 
-// Geo-spatial Indexing for quick nearby map queries
-IssueSchema.index({ location: '2dsphere' });
+  // GeoJSON point for map queries
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true
+    },
+    address: { type: String, default: '' },
+    ward: { type: String, default: '' }
+  },
 
-const Issue = mongoose.model('Issue', IssueSchema);
-export default Issue;
+  media: [{
+    url: String,
+    cloudinaryId: String,
+    type: { type: String, enum: ['image', 'video'], default: 'image' }
+  }],
+
+  aiAnalysis: {
+    category: String,
+    severity: String,
+    confidence: Number,
+    summary: String,
+    processedAt: Date
+  },
+
+  reportedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+
+  upvotes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  upvoteCount: {
+    type: Number,
+    default: 0
+  },
+  verificationCount: {
+    type: Number,
+    default: 0
+  },
+  commentCount: {
+    type: Number,
+    default: 0
+  },
+
+  estimatedResolution: { type: Date, default: null },
+  resolvedAt: { type: Date, default: null },
+
+}, { timestamps: true });
+
+// Geo index for location-based queries
+issueSchema.index({ location: '2dsphere' });
+issueSchema.index({ status: 1 });
+issueSchema.index({ category: 1 });
+
+module.exports = mongoose.model('Issue', issueSchema);

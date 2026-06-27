@@ -1,21 +1,14 @@
-import express from 'express';
-import { getIssues, getIssueById, createIssue, upvoteIssue, uploadTempImage } from '../controllers/issueController.js';
-import { protect } from '../middleware/authMiddleware.js';
-import { uploadSingle } from '../middleware/uploadMiddleware.js';
-
+const express = require('express');
 const router = express.Router();
+const {
+  createIssue, getIssues, getIssueById, upvoteIssue
+} = require('../controllers/issueController');
+const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
-router.route('/')
-  .get(protect, getIssues)
-  .post(protect, createIssue);
+router.get('/', protect, getIssues);
+router.post('/', protect, upload.single('image'), createIssue);
+router.get('/:id', protect, getIssueById);
+router.post('/:id/upvote', protect, upvoteIssue);
 
-router.route('/upload-temp')
-  .post(protect, uploadSingle, uploadTempImage);
-
-router.route('/:id')
-  .get(protect, getIssueById);
-
-router.route('/:id/upvote')
-  .post(protect, upvoteIssue);
-
-export default router;
+module.exports = router;
