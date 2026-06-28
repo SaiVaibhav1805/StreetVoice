@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const verificationSchema = new mongoose.Schema({
   issue: {
@@ -28,4 +28,5 @@ const verificationSchema = new mongoose.Schema({
 // One verification per user per issue
 verificationSchema.index({ issue: 1, verifiedBy: 1 }, { unique: true });
 
-module.exports = mongoose.model('Verification', verificationSchema);
+const Verification = mongoose.model('Verification', verificationSchema);
+export default Verification;

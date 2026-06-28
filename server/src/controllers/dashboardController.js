@@ -1,7 +1,7 @@
-const Issue = require('../models/Issue');
-const User = require('../models/User');
+import Issue from '../models/Issue.js';
+import User from '../models/User.js';
 
-const getPublicDashboard = async (req, res) => {
+export const getPublicDashboard = async (req, res) => {
   try {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
@@ -108,4 +108,4 @@ const getPublicDashboard = async (req, res) => {
   }
 };
 
-module.exports = { getPublicDashboard };
+export default { getPublicDashboard };

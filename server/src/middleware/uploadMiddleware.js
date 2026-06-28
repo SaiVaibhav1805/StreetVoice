@@ -1,4 +1,4 @@
-const multer = require('multer');
+import multer from 'multer';
 
 const storage = multer.memoryStorage(); // keep in memory, upload to cloudinary
 
@@ -14,4 +14,4 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
-module.exports = upload;
+export default upload;

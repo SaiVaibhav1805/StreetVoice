@@ -1,9 +1,10 @@
-const express = require('express');
+import express from 'express';
+import User from '../models/User.js';
+import Issue from '../models/Issue.js';
+import { protect } from '../middleware/authMiddleware.js';
+import { BADGES } from '../services/gamificationService.js';
+
 const router = express.Router();
-const User = require('../models/User');
-const Issue = require('../models/Issue');
-const { protect } = require('../middleware/authMiddleware');
-const { BADGES } = require('../services/gamificationService');
 
 // GET /api/users/leaderboard
 router.get('/leaderboard', protect, async (req, res) => {
@@ -37,4 +38,4 @@ router.get('/profile', protect, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

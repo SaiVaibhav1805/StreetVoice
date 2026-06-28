@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const statusUpdateSchema = new mongoose.Schema({
   issue: {
@@ -32,4 +32,5 @@ const statusUpdateSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('StatusUpdate', statusUpdateSchema);
+const StatusUpdate = mongoose.model('StatusUpdate', statusUpdateSchema);
+export default StatusUpdate;

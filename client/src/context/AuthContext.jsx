@@ -28,13 +28,13 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const login = async (idToken) => {
-        const res = await api.post('/auth/verify', { idToken });
+    const login = async (phone, otp) => {
+        const res = await api.post('/auth/verify', { phone, otp });
         const { token, user } = res.data;
         localStorage.setItem('sv_token', token);
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         setUser(user);
-        return user.isNewUser;
+        return user;
     };
 
     const logout = () => {
@@ -44,10 +44,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;

@@ -1,10 +1,10 @@
-const Verification = require('../models/Verification');
-const Issue = require('../models/Issue');
-const User = require('../models/User');
-const { uploadImage } = require('../services/imageService');
+import Verification from '../models/Verification.js';
+import Issue from '../models/Issue.js';
+import User from '../models/User.js';
+import { uploadImage } from '../services/imageService.js';
 
 // POST /api/issues/:id/verify
-const verifyIssue = async (req, res) => {
+export const verifyIssue = async (req, res) => {
   try {
     const issueId = req.params.id;
     const userId = req.user.userId;
@@ -53,7 +53,9 @@ const verifyIssue = async (req, res) => {
 
       // Emit socket event
       const io = req.app.get('io');
-      io.to(issueId).emit('issue_updated', { status: 'verified', issueId });
+      if (io) {
+        io.to(issueId).emit('issue_updated', { status: 'verified', issueId });
+      }
     }
 
     await issue.save();
@@ -80,7 +82,7 @@ const verifyIssue = async (req, res) => {
 };
 
 // GET /api/issues/:id/verifications
-const getVerifications = async (req, res) => {
+export const getVerifications = async (req, res) => {
   try {
     const verifications = await Verification.find({ issue: req.params.id })
       .populate('verifiedBy', 'name ward')
@@ -92,4 +94,4 @@ const getVerifications = async (req, res) => {
   }
 };
 
-module.exports = { verifyIssue, getVerifications };
+export default { verifyIssue, getVerifications };

@@ -1,6 +1,6 @@
-const cloudinary = require('../config/cloudinary');
+import cloudinary from '../config/cloudinary.js';
 
-const uploadImage = async (fileBuffer, mimetype) => {
+export const uploadImage = async (fileBuffer, mimetype) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
@@ -20,7 +20,7 @@ const uploadImage = async (fileBuffer, mimetype) => {
   });
 };
 
-const deleteImage = async (cloudinaryId) => {
+export const deleteImage = async (cloudinaryId) => {
   try {
     await cloudinary.uploader.destroy(cloudinaryId);
   } catch (error) {
@@ -28,4 +28,4 @@ const deleteImage = async (cloudinaryId) => {
   }
 };
 
-module.exports = { uploadImage, deleteImage };
+export default { uploadImage, deleteImage };

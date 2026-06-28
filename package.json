@@ -7,6 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,16 +16,5 @@
   "type": "commonjs",
   "devDependencies": {
     "concurrently": "^10.0.3"
-  },
-  "dependencies": {
-    "axios": "^1.18.1",
-    "firebase": "^12.15.0",
-    "leaflet": "^1.9.4",
-    "lucide-react": "^1.21.0",
-    "react-hot-toast": "^2.6.0",
-    "react-leaflet": "^5.0.0",
-    "react-router-dom": "^7.18.0",
-    "recharts": "^3.9.0",
-    "socket.io-client": "^4.8.3"
   }
 }

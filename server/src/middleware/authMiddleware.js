@@ -10,7 +10,11 @@ export const protect = (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { userId, role }
+    req.user = {
+      ...decoded,
+      _id: decoded.userId || decoded._id,
+      userId: decoded.userId || decoded._id
+    };
     next();
 
   } catch (error) {

@@ -1,16 +1,28 @@
-import { runAISafetyCheck } from '../services/aiService.js';
+import { analyzeIssueImage } from '../services/aiService.js';
 
-export const analyzeImage = async (req, res, next) => {
-  try {
-    const { imageUrl } = req.body;
-    if (!imageUrl) {
-      return res.status(400).json({ message: 'imageUrl is required' });
+export const analyzeImage = async (req, res) => {
+    try {
+        const { imageBase64, mimeType, description } = req.body;
+
+        if (!imageBase64) {
+            return res.status(400).json({ success: false, message: 'Image data required' });
+        }
+
+        const analysis = await analyzeIssueImage(imageBase64, mimeType, description);
+
+        if (!analysis.isValidIssue) {
+            return res.status(400).json({
+                success: false,
+                message: 'Image does not appear to show a civic issue'
+            });
+        }
+
+        res.status(200).json({ success: true, analysis });
+
+    } catch (error) {
+        console.error('AI analysis error:', error);
+        res.status(500).json({ success: false, message: 'AI analysis failed' });
     }
-    const result = await runAISafetyCheck(imageUrl, 'Inspect image detail contents');
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
 };
 
 export default { analyzeImage };

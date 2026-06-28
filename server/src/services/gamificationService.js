@@ -1,6 +1,6 @@
-const User = require('../models/User');
+import User from '../models/User.js';
 
-const BADGES = [
+export const BADGES = [
   { id: 'first_report', label: 'First Voice', emoji: '📣', condition: u => u.issuesReported >= 1 },
   { id: 'reporter_5', label: 'Street Watcher', emoji: '👀', condition: u => u.issuesReported >= 5 },
   { id: 'reporter_10', label: 'Civic Hero', emoji: '🦸', condition: u => u.issuesReported >= 10 },
@@ -10,9 +10,9 @@ const BADGES = [
   { id: 'xp_100', label: 'Rising Star', emoji: '⭐', condition: u => u.xp >= 100 },
   { id: 'xp_500', label: 'Power Citizen', emoji: '💪', condition: u => u.xp >= 500 },
   { id: 'xp_1000', label: 'Urban Champion', emoji: '🌟', condition: u => u.xp >= 1000 },
-]
+];
 
-const checkAndAwardBadges = async (userId) => {
+export const checkAndAwardBadges = async (userId) => {
   const user = await User.findById(userId);
   if (!user) return;
 
@@ -32,9 +32,9 @@ const checkAndAwardBadges = async (userId) => {
   return newBadges;
 };
 
-const awardXP = async (userId, amount) => {
+export const awardXP = async (userId, amount) => {
   await User.findByIdAndUpdate(userId, { $inc: { xp: amount } });
   return await checkAndAwardBadges(userId);
 };
 
-module.exports = { awardXP, checkAndAwardBadges, BADGES };
+export default { awardXP, checkAndAwardBadges, BADGES };

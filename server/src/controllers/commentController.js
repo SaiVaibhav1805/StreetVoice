@@ -1,9 +1,9 @@
-const Comment = require('../models/Comment');
-const Issue = require('../models/Issue');
-const User = require('../models/User');
+import Comment from '../models/Comment.js';
+import Issue from '../models/Issue.js';
+import User from '../models/User.js';
 
 // POST /api/issues/:id/comments
-const addComment = async (req, res) => {
+export const addComment = async (req, res) => {
     try {
         const { text } = req.body;
         if (!text?.trim()) {
@@ -38,7 +38,9 @@ const addComment = async (req, res) => {
 
         // Emit to anyone viewing this issue
         const io = req.app.get('io');
-        io.to(req.params.id).emit('new_comment', comment);
+        if (io) {
+            io.to(req.params.id).emit('new_comment', comment);
+        }
 
         res.status(201).json({ success: true, comment });
 
@@ -49,7 +51,7 @@ const addComment = async (req, res) => {
 };
 
 // GET /api/issues/:id/comments
-const getComments = async (req, res) => {
+export const getComments = async (req, res) => {
     try {
         const comments = await Comment.find({ issue: req.params.id })
             .populate('author', 'name ward role')
@@ -62,7 +64,7 @@ const getComments = async (req, res) => {
 };
 
 // DELETE /api/issues/:id/comments/:commentId
-const deleteComment = async (req, res) => {
+export const deleteComment = async (req, res) => {
     try {
         const comment = await Comment.findById(req.params.commentId);
         if (!comment) {
@@ -84,4 +86,4 @@ const deleteComment = async (req, res) => {
     }
 };
 
-module.exports = { addComment, getComments, deleteComment };
+export default { addComment, getComments, deleteComment };

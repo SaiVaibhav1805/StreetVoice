@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const issueSchema = new mongoose.Schema({
   title: {
@@ -94,4 +94,5 @@ issueSchema.index({ location: '2dsphere' });
 issueSchema.index({ status: 1 });
 issueSchema.index({ category: 1 });
 
-module.exports = mongoose.model('Issue', issueSchema);
+const Issue = mongoose.model('Issue', issueSchema);
+export default Issue;

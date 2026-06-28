@@ -1,5 +1,5 @@
-const cron = require('node-cron');
-const Issue = require('../models/Issue');
+import cron from 'node-cron';
+import Issue from '../models/Issue.js';
 
 // Every day at 9am — log stale issues for authority attention
 const startReminderJob = () => {
@@ -21,4 +21,4 @@ const startReminderJob = () => {
   });
 };
 
-module.exports = startReminderJob;
+export default startReminderJob;

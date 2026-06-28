@@ -1,6 +1,6 @@
-const cron = require('node-cron');
-const Issue = require('../models/Issue');
-const { generateInsight } = require('../services/aiService');
+import cron from 'node-cron';
+import Issue from '../models/Issue.js';
+import { generateInsight } from '../services/aiService.js';
 
 // Every Sunday midnight — generate weekly insights
 const startPredictionJob = () => {
@@ -29,4 +29,4 @@ const startPredictionJob = () => {
   });
 };
 
-module.exports = startPredictionJob;
+export default startPredictionJob;

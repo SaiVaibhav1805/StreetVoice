@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { analyzeImage } from '../controllers/aiController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const { analyzeImage } = require('../controllers/aiController');
-const { protect } = require('../middleware/authMiddleware');
 
 router.post('/analyze', protect, analyzeImage);  // POST /api/ai/analyze
 
-module.exports = router;
+export default router;

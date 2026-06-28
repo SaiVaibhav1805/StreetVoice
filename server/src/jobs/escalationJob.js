@@ -1,5 +1,5 @@
-const cron = require('node-cron');
-const Issue = require('../models/Issue');
+import cron from 'node-cron';
+import Issue from '../models/Issue.js';
 
 // Every hour — auto-escalate verified issues that are 24h old
 const startEscalationJob = () => {
@@ -24,4 +24,4 @@ const startEscalationJob = () => {
   });
 };
 
-module.exports = startEscalationJob;
+export default startEscalationJob;

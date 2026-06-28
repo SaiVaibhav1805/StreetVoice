@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
@@ -33,14 +34,22 @@ const AuthorityRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth()
   if (loading) return <div className="loading-screen">Loading...</div>
-  if (user) return <Navigate to="/" replace />
+  if (user) {
+    if (user.role === 'authority' || user.role === 'moderator') {
+      return <Navigate to="/authority" replace />
+    }
+    return <Navigate to="/home" replace />
+  }
   return children
 }
 
 export default function App() {
   return (
     <Routes>
-      {/* Public */}
+      {/* Public Landing gateway */}
+      <Route path="/" element={<Landing />} />
+
+      {/* Public Auth */}
       <Route path="/login" element={
         <PublicRoute><Login /></PublicRoute>
       } />
@@ -51,7 +60,7 @@ export default function App() {
       } />
 
       {/* Citizen routes */}
-      <Route path="/" element={
+      <Route path="/home" element={
         <ProtectedRoute><Home /></ProtectedRoute>
       } />
       <Route path="/report" element={
