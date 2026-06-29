@@ -1,4 +1,4 @@
-import BadgeGrid from './BadgeGrid';
+import { motion } from 'framer-motion';
 
 const rankColors = { 
     1: '#FF9500', 
@@ -7,19 +7,35 @@ const rankColors = {
 };
 
 export default function LeaderboardRow({ user, rank, isCurrentUser }) {
+    const accentColor = '#0066FF';
+
     return (
-        <div style={{
-            ...styles.row,
-            background: isCurrentUser ? '#fff' : '#f8fafc',
-            border: isCurrentUser ? '2px solid #0066FF' : '1px solid #e2e8f0',
-            boxShadow: isCurrentUser ? 'var(--shadow-flat)' : 'none'
-        }}>
+        <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ duration: 0.15 }}
+            style={{
+                display: "grid",
+                gridTemplateColumns: "36px 44px 1fr auto",
+                alignItems: "center",
+                gap: 12,
+                borderRadius: 16,
+                padding: "10px 14px",
+                marginBottom: 10,
+                background: isCurrentUser ? '#FFFFFF' : 'rgba(255,255,255,0.7)',
+                border: isCurrentUser ? `2px solid ${accentColor}` : '1px solid rgba(255,255,255,0.7)',
+                boxShadow: isCurrentUser 
+                    ? '0 8px 24px rgba(0, 102, 255, 0.15)' 
+                    : '6px 6px 14px rgba(15, 23, 42, 0.1), -6px -6px 14px rgba(255, 255, 255, 0.96)',
+                cursor: 'pointer',
+                boxSizing: 'border-box'
+            }}
+        >
             {/* Rank badge */}
             <div style={{
-                ...styles.rank,
                 color: rankColors[rank] || '#64748b',
                 fontSize: rank <= 3 ? '1.4rem' : '0.95rem',
-                fontWeight: '900'
+                fontWeight: '900',
+                textAlign: 'center'
             }}>
                 {rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : `#${rank}`}
             </div>
@@ -39,37 +55,22 @@ export default function LeaderboardRow({ user, rank, isCurrentUser }) {
                 <div style={styles.stats}>
                     <span>📋 {user.issuesReported || 0} Reports</span>
                     <span style={styles.dot}>•</span>
-                    <span>✓ {user.issuesVerified || 0} Verifications</span>
+                    <span>✓ {user.issuesVerified || 0} Verified</span>
                 </div>
             </div>
 
             {/* Contributions points */}
             <div style={styles.xpBlock}>
-                <p style={styles.xp}>⭐ {user.xp || 0}</p>
-                <p style={styles.xpLabel}>Points</p>
+                <p style={{ ...styles.xp, color: accentColor }}>{user.xp || 0} pts</p>
                 <span style={styles.badgeCount}>
                     🏅 {user.badges?.length || 0} Badges
                 </span>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
 const styles = {
-    row: { 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '1rem', 
-        padding: '1rem 1.25rem', 
-        borderRadius: '16px', 
-        marginBottom: '0.25rem',
-        transition: 'transform 0.15s ease'
-    },
-    rank: { 
-        width: '36px', 
-        textAlign: 'center', 
-        flexShrink: 0 
-    },
     avatar: { 
         width: '44px', 
         height: '44px', 
@@ -82,13 +83,13 @@ const styles = {
         fontWeight: '800', 
         fontSize: '1.15rem', 
         flexShrink: 0,
-        boxShadow: '0 3px 8px rgba(0, 102, 255, 0.15)'
+        boxShadow: '0 4px 12px rgba(0, 102, 255, 0.18)'
     },
     name: { 
         margin: 0, 
-        fontWeight: '800', 
+        fontWeight: '700', 
         fontSize: '0.95rem',
-        color: '#1e293b',
+        color: '#0f172a',
         display: 'inline-flex',
         alignItems: 'center',
         gap: '0.4rem'
@@ -105,15 +106,15 @@ const styles = {
     ward: { 
         margin: '0.15rem 0 0', 
         fontSize: '0.75rem', 
-        color: '#94a3b8',
-        fontWeight: '700'
+        color: '#64748b',
+        fontWeight: '600'
     },
     stats: { 
         display: 'flex', 
         gap: '0.5rem', 
         marginTop: '0.35rem', 
         fontSize: '0.78rem', 
-        color: '#64748b',
+        color: '#94a3b8',
         fontWeight: '600'
     },
     dot: {
@@ -125,16 +126,9 @@ const styles = {
     },
     xp: { 
         margin: 0, 
-        fontWeight: '900', 
-        color: '#FF9500', 
-        fontSize: '1.1rem' 
-    },
-    xpLabel: { 
-        margin: 0, 
-        fontSize: '0.68rem', 
-        color: '#94a3b8',
-        fontWeight: '700',
-        textTransform: 'uppercase'
+        fontWeight: '800', 
+        fontSize: '1.1rem',
+        fontFamily: 'Clash Display, Satoshi, sans-serif'
     },
     badgeCount: { 
         display: 'inline-block',

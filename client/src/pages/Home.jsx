@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
 // Color coded pins by severity
 const pinColors = {
     critical: '#ef4444',
-high: '#f97316',
+    high: '#f97316',
     medium: '#eab308',
     low: '#22c55e',
     resolved: '#6b7280'
@@ -89,69 +89,118 @@ export default function Home() {
         return matchesStatus && matchesCategory;
     });
 
+    const sharedShellStyle = {
+        background: '#FFFFFF',
+        borderRadius: 24,
+        boxShadow: `10px 10px 22px rgba(15, 23, 42, 0.14), -10px -10px 22px rgba(255, 255, 255, 0.9)`,
+        border: `1px solid rgba(255,255,255,0.7)`,
+    };
+
+    const headingStyle = {
+        margin: '0 0 12px',
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        color: '#0f172a',
+        fontFamily: 'Clash Display, Satoshi, sans-serif'
+    };
+
     const mapElement = (
-        <div style={{ height: '100%', width: '100%', borderRadius: isMobile ? 0 : '20px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: 'var(--shadow-concave)' }}>
-            <MapContainer center={[17.385, 78.4867]} zoom={13} style={{ height: '100%', width: '100%' }}>
-                <TileLayer
-                    attribution='&copy; OpenStreetMap contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <LocateUser onLocate={setUserPos} />
-                {userPos && (
-                    <Marker position={userPos} icon={L.divIcon({
-                        className: '',
-                        html: `<div style="width:16px;height:16px;background:#0066FF;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(0,102,255,0.2)"></div>`,
-                        iconSize: [16, 16], iconAnchor: [8, 8]
-                    })}>
-                        <Popup>You are here</Popup>
-                    </Marker>
-                )}
-                {filtered.map(issue => (
-                    <Marker
-                        key={issue._id}
-                        position={[issue.location.coordinates[1], issue.location.coordinates[0]]}
-                        icon={createColorPin(issue.status === 'resolved' ? pinColors.resolved : pinColors[issue.severity] || pinColors.medium)}
-                    >
-                        <Popup>
-                            <div style={{ fontFamily: 'sans-serif' }}>
-                                <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>{issue.title}</strong><br />
-                                <span style={{ color: '#64748b', fontSize: '0.8rem', textTransform: 'capitalize' }}>
-                                    {issue.category.replace('_', ' ')} • {issue.status}
-                                </span><br />
-                                <button 
-                                    onClick={() => navigate(`/issue/${issue._id}`)} 
-                                    style={{ marginTop: '8px', color: '#0066FF', border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontWeight: 'bold' }}
-                                >
-                                    View details →
-                                </button>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
-            </MapContainer>
-        </div>
+        <article style={{ ...sharedShellStyle, padding: 18, height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={headingStyle}>
+                Nearby Reported Issues
+            </h3>
+            <div style={{ 
+                flex: 1, 
+                width: '100%', 
+                borderRadius: '16px', 
+                overflow: 'hidden', 
+                border: '1px solid rgba(255,255,255,0.7)', 
+                boxShadow: 'inset 2px 2px 5px rgba(15,23,42,0.05)'
+            }}>
+                <MapContainer center={[17.385, 78.4867]} zoom={13} style={{ height: '100%', width: '100%' }}>
+                    <TileLayer
+                        attribution='&copy; OpenStreetMap contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <LocateUser onLocate={setUserPos} />
+                    {userPos && (
+                        <Marker position={userPos} icon={L.divIcon({
+                            className: '',
+                            html: `<div style="width:16px;height:16px;background:#0066FF;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 4px rgba(0,102,255,0.2)"></div>`,
+                            iconSize: [16, 16], iconAnchor: [8, 8]
+                        })}>
+                            <Popup>You are here</Popup>
+                        </Marker>
+                    )}
+                    {filtered.map(issue => (
+                        <Marker
+                            key={issue._id}
+                            position={[issue.location.coordinates[1], issue.location.coordinates[0]]}
+                            icon={createColorPin(issue.status === 'resolved' ? pinColors.resolved : pinColors[issue.severity] || pinColors.medium)}
+                        >
+                            <Popup>
+                                <div style={{ fontFamily: 'sans-serif' }}>
+                                    <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>{issue.title}</strong><br />
+                                    <span style={{ color: '#64748b', fontSize: '0.8rem', textTransform: 'capitalize' }}>
+                                        {issue.category.replace('_', ' ')} • {issue.status}
+                                    </span><br />
+                                    <button 
+                                        onClick={() => navigate(`/issue/${issue._id}`)} 
+                                        style={{ marginTop: '8px', color: '#0066FF', border: 'none', background: 'none', cursor: 'pointer', padding: 0, fontWeight: 'bold' }}
+                                    >
+                                        View details →
+                                    </button>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
+            </div>
+        </article>
     );
 
     const feedElement = (
-        <div style={{ 
-            overflowY: 'auto', 
-            padding: isMobile ? '0.75rem' : '0rem', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '1rem', 
-            flex: 1,
-            maxHeight: isMobile ? 'none' : 'calc(100vh - 250px)'
-        }}>
-            {filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '3rem' }}>
-                    <p style={{ fontSize: '2.5rem' }}>🏙️</p>
-                    <p style={{ fontWeight: 'bold', color: '#64748b' }}>No active reports</p>
-                    <p style={{ fontSize: '0.85rem' }}>Change category or submit a new case!</p>
-                </div>
-            ) : (
-                filtered.map(issue => <IssueCard key={issue._id} issue={issue} />)
-            )}
-        </div>
+        <article style={{ ...sharedShellStyle, padding: 18, height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+            <h3 style={headingStyle}>
+                Issue Feed
+            </h3>
+            {/* Filter status row styled to fit the layout perfectly */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                {['all', 'reported', 'verified', 'resolved'].map(f => (
+                    <button
+                        key={f}
+                        onClick={() => setFilter(f)}
+                        style={{
+                            ...styles.pill,
+                            background: filter === f ? '#0066FF' : 'rgba(255,255,255,0.6)',
+                            color: filter === f ? '#fff' : '#64748b',
+                            boxShadow: filter === f ? '0 4px 10px rgba(0, 102, 255, 0.2)' : 'inset 2px 2px 5px rgba(15,23,42,0.04), inset -2px -2px 5px rgba(255,255,255,0.9)',
+                            border: filter === f ? 'none' : '1px solid rgba(255,255,255,0.6)'
+                        }}
+                    >
+                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                    </button>
+                ))}
+            </div>
+
+            <div style={{ 
+                overflowY: 'auto', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px', 
+                flex: 1
+            }}>
+                {filtered.length === 0 ? (
+                    <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '3rem' }}>
+                        <p style={{ fontSize: '2.5rem' }}>🏙️</p>
+                        <p style={{ fontWeight: 'bold', color: '#64748b' }}>No active reports</p>
+                        <p style={{ fontSize: '0.85rem' }}>Change category or submit a new case!</p>
+                    </div>
+                ) : (
+                    filtered.map(issue => <IssueCard key={issue._id} issue={issue} />)
+                )}
+            </div>
+        </article>
     );
 
     return (
@@ -160,102 +209,55 @@ export default function Home() {
                 // Mobile layout
                 <div style={{ height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
                     {/* Header info */}
-                    <div style={styles.header}>
+                    <div style={{ ...styles.header, ...sharedShellStyle, borderRadius: '16px', margin: '4px 0 10px', padding: '10px 14px' }}>
                         <span style={styles.logo}>📍 Nearby Issues</span>
                         <span style={styles.count}>{filtered.length} filtered</span>
                     </div>
 
                     {/* Tab Switcher */}
-                    <div style={styles.toggle}>
+                    <div style={{ ...styles.toggle, ...sharedShellStyle, borderRadius: '16px', padding: '6px', marginBottom: '10px', gap: '6px' }}>
                         <button
                             onClick={() => setView('map')}
-                            style={{ ...styles.toggleBtn, background: view === 'map' ? '#0066FF' : '#fff', color: view === 'map' ? '#fff' : '#475569', boxShadow: view === 'map' ? 'none' : 'var(--shadow-flat)' }}
+                            style={{ 
+                                ...styles.toggleBtn, 
+                                background: view === 'map' ? '#0066FF' : 'transparent', 
+                                color: view === 'map' ? '#fff' : '#475569', 
+                                boxShadow: view === 'map' ? '0 4px 12px rgba(0,102,255,0.2)' : 'none' 
+                            }}
                         >
                             🗺️ Map
                         </button>
                         <button
                             onClick={() => setView('feed')}
-                            style={{ ...styles.toggleBtn, background: view === 'feed' ? '#0066FF' : '#fff', color: view === 'feed' ? '#fff' : '#475569', boxShadow: view === 'feed' ? 'none' : 'var(--shadow-flat)' }}
+                            style={{ 
+                                ...styles.toggleBtn, 
+                                background: view === 'feed' ? '#0066FF' : 'transparent', 
+                                color: view === 'feed' ? '#fff' : '#475569', 
+                                boxShadow: view === 'feed' ? '0 4px 12px rgba(0,102,255,0.2)' : 'none' 
+                            }}
                         >
                             📋 Feed
                         </button>
                     </div>
 
-                    {/* Filter pills */}
-                    <div style={styles.filters}>
-                        {['all', 'reported', 'verified', 'resolved'].map(f => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                style={{
-                                    ...styles.pill,
-                                    background: filter === f ? '#0066FF' : '#fff',
-                                    color: filter === f ? '#fff' : '#475569',
-                                    boxShadow: filter === f ? 'none' : 'var(--shadow-flat)'
-                                }}
-                            >
-                                {f.charAt(0).toUpperCase() + f.slice(1)}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* Render active tab */}
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minHeight: 0 }}>
                         {view === 'map' ? mapElement : feedElement}
                     </div>
                 </div>
             ) : (
-                // Desktop split side-by-side website layout
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', height: 'calc(100vh - 120px)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: '0 0 0.25rem', letterSpacing: '-0.02em' }}>
-                                Nearby Reported Issues
-                            </h2>
-                            <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
-                                Active Filter: <strong style={{ color: '#0066FF', textTransform: 'capitalize' }}>{categoryFilter.replace('_', ' ')}</strong> Category
-                            </p>
-                        </div>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#64748b', background: '#fff', padding: '0.6rem 1.25rem', borderRadius: '20px', boxShadow: 'var(--shadow-flat)' }}>
-                            📋 {filtered.length} active cases
-                        </span>
-                    </div>
-
-                    {/* Filter status row */}
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status:</span>
-                        {['all', 'reported', 'verified', 'resolved'].map(f => (
-                            <button
-                                key={f}
-                                onClick={() => setFilter(f)}
-                                style={{
-                                    ...styles.pill,
-                                    padding: '0.5rem 1.35rem',
-                                    fontSize: '0.85rem',
-                                    background: filter === f ? '#0066FF' : '#fff',
-                                    color: filter === f ? '#fff' : '#64748b',
-                                    boxShadow: filter === f ? 'none' : 'var(--shadow-flat)',
-                                    border: filter === f ? 'none' : '1px solid rgba(255,255,255,0.4)'
-                                }}
-                            >
-                                {f.charAt(0).toUpperCase() + f.slice(1)}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Side-by-side split */}
-                    <div style={{ display: 'flex', gap: '2rem', flex: 1, minHeight: 0 }}>
-                        <div style={{ flex: 1.8, height: '100%' }}>
-                            {mapElement}
-                        </div>
-                        <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', overflow: 'hidden' }}>
-                            <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#1e293b', margin: 0, letterSpacing: '-0.01em' }}>
-                                Recent Reported Issues
-                            </h3>
-                            {feedElement}
-                        </div>
-                    </div>
-                </div>
+                // Desktop split side-by-side website layout (exactly matches Framer 1.25fr 1fr split)
+                <section style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1.25fr 1fr',
+                    gap: '16px',
+                    width: '100%',
+                    height: 'calc(100vh - 110px)',
+                    minHeight: 0
+                }}>
+                    {mapElement}
+                    {feedElement}
+                </section>
             )}
 
             {/* Quick Report FAB Button */}
@@ -275,24 +277,14 @@ const styles = {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '0.75rem 1rem',
-        background: '#f8fafc',
-        borderBottom: '1px solid #e2e8f0',
+        background: '#fff',
         zIndex: 10
     },
     logo: { fontWeight: '800', fontSize: '1rem', color: '#0f172a' },
-    count: { fontSize: '0.8rem', color: '#666' },
-    filters: {
-        display: 'flex',
-        gap: '0.5rem',
-        padding: '0.5rem 1rem',
-        background: '#f0f3f8',
-        overflowX: 'auto',
-        borderBottom: '1px solid #e2e8f0'
-    },
+    count: { fontSize: '0.8rem', color: '#64748b', fontWeight: '600' },
     toggle: {
-        display: 'flex', gap: '0.5rem', padding: '0.5rem 1rem',
-        background: '#f0f3f8', borderBottom: '1px solid #e2e8f0'
+        display: 'flex',
+        background: 'rgba(255,255,255,0.5)',
     },
     toggleBtn: {
         flex: 1, padding: '0.55rem', borderRadius: '12px',
@@ -321,7 +313,7 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(0, 102, 255, 0.4)',
+        boxShadow: '0 8px 24px rgba(0, 102, 255, 0.3)',
         cursor: 'pointer',
         zIndex: 999,
         transition: 'transform 0.2s',

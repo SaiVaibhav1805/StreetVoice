@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line, Legend
@@ -104,9 +105,10 @@ export default function Dashboard() {
                             onClick={() => setTab(t)}
                             style={{
                                 ...styles.tab,
-                                background: tab === t ? '#0066FF' : '#fff',
+                                background: tab === t ? '#0066FF' : 'rgba(255,255,255,0.6)',
                                 color: tab === t ? '#fff' : '#64748b',
-                                boxShadow: tab === t ? 'none' : 'var(--shadow-flat)'
+                                boxShadow: tab === t ? '0 4px 10px rgba(0, 102, 255, 0.2)' : 'inset 2px 2px 5px rgba(15,23,42,0.04), inset -2px -2px 5px rgba(255,255,255,0.9)',
+                                border: tab === t ? 'none' : '1px solid rgba(255,255,255,0.6)'
                             }}
                         >
                             {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -121,22 +123,48 @@ export default function Dashboard() {
                         <>
                             {/* Summary cards in top row */}
                             <div style={{
-                                ...styles.gridCards,
-                                gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(6, 1fr)'
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                                gap: '16px'
                             }}>
                                 {[
-                                    { icon: '📋', label: 'Total Issues', value: summary.totalIssues, color: '#0066FF' },
-                                    { icon: '✅', label: 'Resolved', value: summary.resolvedIssues, color: '#22C55E' },
-                                    { icon: '📅', label: 'This Month', value: summary.thisMonthIssues, color: '#FF9500' },
-                                    { icon: '📈', label: 'Resolution Rate', value: `${summary.resolutionRate}%`, color: '#0066FF' },
-                                    { icon: '⏱️', label: 'Avg Resolution', value: `${summary.avgResolutionHours}h`, color: '#0066FF' },
-                                    { icon: '🗓️', label: 'Monthly Resolved', value: summary.thisMonthResolved, color: '#22C55E' },
+                                    { label: 'Total Issues', value: summary.totalIssues, color: '#0066FF' },
+                                    { label: 'Resolved', value: summary.resolvedIssues, color: '#22C55E' },
+                                    { label: 'This Month', value: summary.thisMonthIssues, color: '#FF9500' },
+                                    { label: 'Resolution Rate', value: `${summary.resolutionRate}%`, color: '#0066FF' },
+                                    { label: 'Avg Resolution', value: `${summary.avgResolutionHours}h`, color: '#0066FF' },
+                                    { label: 'Monthly Resolved', value: summary.thisMonthResolved, color: '#22C55E' },
                                 ].map(s => (
-                                    <div key={s.label} style={styles.summaryCard}>
-                                        <span style={styles.summaryIcon}>{s.icon}</span>
-                                        <p style={{ ...styles.summaryValue, color: s.color }}>{s.value}</p>
-                                        <p style={styles.summaryLabel}>{s.label}</p>
-                                    </div>
+                                    <article
+                                        key={s.label}
+                                        style={{
+                                            background: '#FFFFFF',
+                                            borderRadius: 24,
+                                            boxShadow: '10px 10px 22px rgba(15, 23, 42, 0.06), -10px -10px 22px rgba(255, 255, 255, 0.9)',
+                                            border: '1px solid rgba(255,255,255,0.7)',
+                                            padding: 18,
+                                            boxSizing: 'border-box'
+                                        }}
+                                    >
+                                        <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '600', opacity: 0.75 }}>
+                                            {s.label}
+                                        </div>
+                                        <div style={{ fontSize: '28px', fontWeight: '700', marginTop: 8, color: '#0f172a', fontFamily: 'Clash Display, Satoshi, sans-serif' }}>
+                                            {s.value}
+                                        </div>
+                                        <motion.div
+                                            initial={{ scaleX: 0 }}
+                                            animate={{ scaleX: 1 }}
+                                            transition={{ duration: 0.8 }}
+                                            style={{
+                                                transformOrigin: "left",
+                                                height: 6,
+                                                marginTop: 12,
+                                                borderRadius: 999,
+                                                background: s.color,
+                                            }}
+                                        />
+                                    </article>
                                 ))}
                             </div>
 
@@ -401,45 +429,57 @@ export default function Dashboard() {
 const styles = {
     container: { width: '100%' },
     centered: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#94a3b8' },
-    header: { padding: '1rem 0', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
-    headerTitle: { margin: 0, fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em' },
-    headerSub: { margin: '0.2rem 0 0', fontSize: '0.9rem', color: '#64748b' },
+    header: { padding: '1rem 0', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
+    headerTitle: { margin: 0, fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.02em', fontFamily: 'Clash Display, Satoshi, sans-serif' },
+    headerSub: { margin: '0.2rem 0 0', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' },
     tabs: { display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' },
     tab: { padding: '0.55rem 1.4rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem', transition: 'all 0.2s' },
     body: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
     gridCards: { display: 'grid', gap: '1.25rem' },
-    summaryCard: { background: '#fff', borderRadius: '20px', padding: '1.5rem 1rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.4)', boxShadow: 'var(--shadow-flat)' },
+    summaryCard: { 
+        background: '#fff', 
+        borderRadius: '24px', 
+        padding: '1.5rem 1rem', 
+        textAlign: 'center', 
+        border: '1px solid rgba(255,255,255,0.7)', 
+        boxShadow: '10px 10px 22px rgba(15, 23, 42, 0.06), -10px -10px 22px rgba(255, 255, 255, 0.9)' 
+    },
     summaryIcon: { fontSize: '1.75rem' },
-    summaryValue: { margin: '0.5rem 0 0.1rem', fontSize: '1.65rem', fontWeight: '900' },
+    summaryValue: { margin: '0.5rem 0 0.1rem', fontSize: '1.65rem', fontWeight: '900', fontFamily: 'Clash Display, Satoshi, sans-serif' },
     summaryLabel: { margin: 0, fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.03em' },
-    chartCard: { background: '#fff', borderRadius: '20px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.4)', boxShadow: 'var(--shadow-flat)' },
-    chartTitle: { margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.01em' },
-    empty: { color: '#94a3b8', fontSize: '0.85rem', textAlign: 'center', padding: '1rem 0' },
-    resolvedRow: { display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '1rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9' },
+    chartCard: { 
+        background: '#fff', 
+        borderRadius: '24px', 
+        padding: '1.5rem', 
+        border: '1px solid rgba(255,255,255,0.7)', 
+        boxShadow: '10px 10px 22px rgba(15, 23, 42, 0.06), -10px -10px 22px rgba(255, 255, 255, 0.9)' 
+    },
+    chartTitle: { margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.01em', fontFamily: 'Clash Display, Satoshi, sans-serif' },
+    empty: { color: '#94a3b8', fontSize: '0.85rem', textAlign: 'center', padding: '1rem 0', fontWeight: '600' },
+    resolvedRow: { display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.6)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', boxShadow: '4px 4px 10px rgba(15,23,42,0.03)' },
     resolvedDot: { fontSize: '1.2rem', flexShrink: 0 },
     resolvedTitle: { margin: 0, fontWeight: '800', fontSize: '0.92rem', color: '#1e293b' },
     resolvedMeta: { margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#64748b', textTransform: 'capitalize' },
     reporterRow: { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0', borderBottom: '1px solid #f1f5f9' },
     rank: { fontWeight: '900', color: '#0066FF', fontSize: '0.9rem', width: '24px' },
-    reporterAvatar: { width: '38px', height: '38px', borderRadius: '50%', background: '#0066FF', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.95rem', flexShrink: 0 },
+    reporterAvatar: { width: '38px', height: '38px', borderRadius: '50%', background: '#0066FF', color: '#fff', display: 'flex', alignItems: 'center', justifycontent: 'center', fontWeight: '800', fontSize: '0.95rem', flexShrink: 0 },
     reporterName: { margin: 0, fontWeight: '800', fontSize: '0.9rem', color: '#1e293b' },
     reporterMeta: { margin: '0.1rem 0 0', fontSize: '0.75rem', color: '#64748b' },
     reporterXP: { margin: 0, fontSize: '0.85rem', fontWeight: '800', color: '#FF9500' },
     reporterCount: { margin: '0.1rem 0 0', fontSize: '0.72rem', color: '#64748b', fontWeight: '700' },
     
-    /* Live Impact Card Styling matching CivicFix */
     liveImpactCard: {
         background: '#fff',
-        border: '1px solid rgba(255,255,255,0.4)',
-        borderRadius: '20px',
-        boxShadow: 'var(--shadow-flat)',
+        border: '1px solid rgba(255,255,255,0.7)',
+        borderRadius: '24px',
+        boxShadow: '10px 10px 22px rgba(15, 23, 42, 0.06), -10px -10px 22px rgba(255, 255, 255, 0.9)',
         padding: '2rem 1.5rem',
         textAlign: 'left'
     },
     liveLabel: {
-        fontSize: '0.85rem',
+        fontSize: '0.72rem',
         fontWeight: '800',
-        color: '#64748b',
+        color: '#94a3b8',
         textTransform: 'uppercase',
         letterSpacing: '0.05em'
     },
@@ -448,7 +488,8 @@ const styles = {
         fontWeight: '950',
         color: '#0f172a',
         margin: '0.25rem 0 0.1rem',
-        letterSpacing: '-0.03em'
+        letterSpacing: '-0.03em',
+        fontFamily: 'Clash Display, Satoshi, sans-serif'
     },
     liveSub: {
         fontSize: '0.85rem',
@@ -477,9 +518,9 @@ const styles = {
     },
     miniLeaderboardCard: {
         background: '#fff',
-        border: '1px solid rgba(255,255,255,0.4)',
-        borderRadius: '20px',
-        boxShadow: 'var(--shadow-flat)',
+        border: '1px solid rgba(255,255,255,0.7)',
+        borderRadius: '24px',
+        boxShadow: '10px 10px 22px rgba(15, 23, 42, 0.06), -10px -10px 22px rgba(255, 255, 255, 0.9)',
         padding: '1.5rem'
     },
     miniRow: {

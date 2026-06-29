@@ -30,34 +30,48 @@ export default function Leaderboard() {
         }
     };
 
+    const sharedShellStyle = {
+        background: '#FFFFFF',
+        borderRadius: 24,
+        boxShadow: `10px 10px 22px rgba(15, 23, 42, 0.14), -10px -10px 22px rgba(255, 255, 255, 0.9)`,
+        border: `1px solid rgba(255,255,255,0.7)`,
+        width: '100%',
+        maxWidth: '650px',
+        boxSizing: 'border-box'
+    };
+
     return (
         <ResponsiveLayout>
-            <div style={isMobile ? {} : styles.desktopContainer}>
-                {/* Header */}
-                <div style={styles.header}>
-                    <h2 style={styles.title}>🏆 Community Leaderboard</h2>
-                    <p style={styles.sub}>Top citizens making a difference across Hyderabad</p>
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '12px 0' }}>
+                <article style={sharedShellStyle}>
+                    {/* Header */}
+                    <div style={styles.header}>
+                        <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.25rem', fontWeight: '700', fontFamily: 'Clash Display, Satoshi, sans-serif', color: '#0f172a' }}>
+                            Community Leaderboard
+                        </h3>
+                        <p style={styles.sub}>Top citizens making a difference across Hyderabad</p>
+                    </div>
 
-                {loading ? (
-                    <div style={styles.centered}><p>Loading scores...</p></div>
-                ) : users.length === 0 ? (
-                    <div style={styles.centered}>
-                        <p style={{ fontSize: '2.5rem' }}>🏙️</p>
-                        <p style={{ fontWeight: 'bold' }}>No registered citizens yet.</p>
-                    </div>
-                ) : (
-                    <div style={styles.list}>
-                        {users.map((u, i) => (
-                            <LeaderboardRow
-                                key={u._id}
-                                user={u}
-                                rank={i + 1}
-                                isCurrentUser={u._id === user?._id}
-                            />
-                        ))}
-                    </div>
-                )}
+                    {loading ? (
+                        <div style={styles.centered}><p>Loading scores...</p></div>
+                    ) : users.length === 0 ? (
+                        <div style={styles.centered}>
+                            <p style={{ fontSize: '2.5rem' }}>🏙️</p>
+                            <p style={{ fontWeight: 'bold' }}>No registered citizens yet.</p>
+                        </div>
+                    ) : (
+                        <div style={styles.list}>
+                            {users.map((u, i) => (
+                                <LeaderboardRow
+                                    key={u._id}
+                                    user={u}
+                                    rank={i + 1}
+                                    isCurrentUser={u._id === user?._id}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </article>
             </div>
         </ResponsiveLayout>
     );
@@ -68,15 +82,15 @@ const styles = {
         maxWidth: '650px',
         margin: '1.5rem auto 0',
         background: '#fff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '16px',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
+        border: '1px solid rgba(255, 255, 255, 0.7)',
+        borderRadius: '24px',
+        boxShadow: '10px 10px 22px rgba(15, 23, 42, 0.06), -10px -10px 22px rgba(255, 255, 255, 0.9)',
         overflow: 'hidden'
     },
     header: { 
         padding: '1.5rem', 
         background: '#fff', 
-        borderBottom: '1px solid #f1f5f9',
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
         textAlign: 'left'
     },
     title: { 
@@ -84,13 +98,14 @@ const styles = {
         fontSize: '1.5rem', 
         fontWeight: '900',
         color: '#0f172a',
-        letterSpacing: '-0.02em'
+        letterSpacing: '-0.02em',
+        fontFamily: 'Clash Display, Satoshi, sans-serif'
     },
     sub: { 
         margin: 0, 
         fontSize: '0.88rem', 
         color: '#64748b',
-        fontWeight: '500'
+        fontWeight: '600'
     },
     centered: { 
         display: 'flex', 
@@ -101,7 +116,7 @@ const styles = {
         color: '#94a3b8' 
     },
     list: { 
-        padding: '1rem',
+        padding: '1.25rem',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem'

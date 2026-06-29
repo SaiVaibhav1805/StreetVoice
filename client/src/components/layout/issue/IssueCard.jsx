@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { MapPin, ThumbsUp, CheckCheck, MessageCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 import IssueStatusBadge from './IssueStatusBadge'
 import CategoryIcon from './CategoryIcon'
 import { formatDistanceToNow } from '../../../utils/formatters'
@@ -8,7 +9,9 @@ export default function IssueCard({ issue }) {
     const navigate = useNavigate()
 
     return (
-        <div
+        <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.2 }}
             style={styles.card}
             onClick={() => navigate(`/issue/${issue._id}`)}
         >
@@ -22,7 +25,7 @@ export default function IssueCard({ issue }) {
                     />
                 ) : (
                     <div style={styles.iconBox}>
-                        <CategoryIcon category={issue.category} size="2rem" />
+                        <CategoryIcon category={issue.category} size="1.8rem" />
                     </div>
                 )}
             </div>
@@ -45,20 +48,20 @@ export default function IssueCard({ issue }) {
 
                 <div style={styles.footer}>
                     <span style={styles.stat}>
-                        <ThumbsUp size={13} /> {issue.upvoteCount || 0}
+                        <ThumbsUp size={13} color="#64748b" /> {issue.upvoteCount || 0}
                     </span>
                     <span style={styles.stat}>
-                        <CheckCheck size={13} /> {issue.verificationCount || 0}
+                        <CheckCheck size={13} color="#64748b" /> {issue.verificationCount || 0}
                     </span>
                     <span style={styles.stat}>
-                        <MessageCircle size={13} /> {issue.commentCount || 0}
+                        <MessageCircle size={13} color="#64748b" /> {issue.commentCount || 0}
                     </span>
                     <span style={styles.category}>
                         {issue.category?.replace('_', ' ')}
                     </span>
                 </div>
             </div>
-        </div>
+        </motion.div>
     )
 }
 
@@ -67,36 +70,39 @@ const styles = {
         display: 'flex',
         gap: '0.75rem',
         background: '#fff',
-        borderRadius: '12px',
-        padding: '0.75rem',
+        borderRadius: '16px',
+        padding: '0.85rem',
         cursor: 'pointer',
-        border: '1px solid #f1f5f9',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-        transition: 'box-shadow 0.2s'
+        border: '1px solid rgba(255, 255, 255, 0.7)',
+        boxShadow: '6px 6px 14px rgba(15, 23, 42, 0.12), -6px -6px 14px rgba(255, 255, 255, 0.96)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        boxSizing: 'border-box'
     },
     left: { flexShrink: 0 },
     thumbnail: {
-        width: '72px',
-        height: '72px',
-        borderRadius: '8px',
+        width: '74px',
+        height: '74px',
+        borderRadius: '12px',
         objectFit: 'cover'
     },
     iconBox: {
-        width: '72px',
-        height: '72px',
-        borderRadius: '8px',
-        background: '#f1f5f9',
+        width: '74px',
+        height: '74px',
+        borderRadius: '12px',
+        background: '#f0f3f8',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        boxShadow: 'inset 2px 2px 5px rgba(15,23,42,0.05), inset -2px -2px 5px rgba(255,255,255,0.9)'
     },
     right: { flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: 0 },
     topRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    time: { fontSize: '0.7rem', color: '#94a3b8' },
+    time: { fontSize: '0.7rem', color: '#94a3b8', fontWeight: '500' },
     title: {
         margin: 0,
         fontSize: '0.95rem',
-        fontWeight: '600',
+        fontWeight: '700',
+        color: '#0f172a',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis'
@@ -106,7 +112,8 @@ const styles = {
         alignItems: 'center',
         gap: '4px',
         fontSize: '0.75rem',
-        color: '#94a3b8'
+        color: '#64748b',
+        fontWeight: '500'
     },
     footer: {
         display: 'flex',
@@ -119,12 +126,14 @@ const styles = {
         alignItems: 'center',
         gap: '3px',
         fontSize: '0.78rem',
-        color: '#64748b'
+        color: '#64748b',
+        fontWeight: '600'
     },
     category: {
         marginLeft: 'auto',
-        fontSize: '0.7rem',
+        fontSize: '0.72rem',
         color: '#94a3b8',
+        fontWeight: '600',
         textTransform: 'capitalize'
     }
 }

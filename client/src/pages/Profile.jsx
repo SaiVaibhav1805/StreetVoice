@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Edit2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -65,79 +66,165 @@ export default function Profile() {
         <div style={styles.centered}><p>Loading profile...</p></div>
     );
 
-    const profileCardElement = (
-        <div style={styles.profileCard}>
-            <div style={styles.avatarLarge}>
-                {profile?.name?.[0]?.toUpperCase() || '?'}
-            </div>
+    const accentColor = '#0066FF';
+    const secondaryAccent = '#FF9500';
+    const textColor = '#0f172a';
 
-            {editing ? (
-                <div style={styles.editForm}>
-                    <input
-                        style={styles.input}
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        placeholder="Your name"
-                    />
-                    <input
-                        style={styles.input}
-                        value={ward}
-                        onChange={e => setWard(e.target.value)}
-                        placeholder="Ward / Area"
-                    />
-                    <div style={styles.editBtns}>
-                        <button style={styles.cancelBtn} onClick={() => setEditing(false)}>Cancel</button>
-                        <button style={styles.saveBtn} onClick={handleSave}>Save</button>
-                    </div>
+    const sharedShellStyle = {
+        background: '#FFFFFF',
+        borderRadius: 24,
+        boxShadow: `10px 10px 22px rgba(15, 23, 42, 0.14), -10px -10px 22px rgba(255, 255, 255, 0.9)`,
+        border: `1px solid rgba(255,255,255,0.7)`,
+    };
+
+    const inputNeumorphic = {
+        width: '100%',
+        padding: '0.75rem',
+        borderRadius: '12px',
+        border: '1px solid rgba(255, 255, 255, 0.5)',
+        fontSize: '0.95rem',
+        background: '#f0f3f8',
+        boxShadow: 'inset 2px 2px 5px rgba(15,23,42,0.05), inset -2px -2px 5px rgba(255,255,255,0.9)',
+        outline: 'none',
+        color: '#1e293b'
+    };
+
+    const textBaseStyle = {
+        color: textColor,
+        fontFamily: "Satoshi, Clash Display, Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    };
+
+    const headingStyle = {
+        ...textBaseStyle,
+        fontSize: '1.25rem',
+        fontWeight: '700',
+        fontFamily: 'Clash Display, Satoshi, sans-serif'
+    };
+
+    // Calculate resolution statistics
+    const totalReports = myIssues.length;
+    const resolvedReports = myIssues.filter(i => i.status === 'resolved').length;
+    const resolutionPercentage = totalReports > 0 ? Math.round((resolvedReports / totalReports) * 100) : 0;
+
+    const profileCardElement = (
+        <article style={{ ...sharedShellStyle, padding: 18, boxSizing: 'border-box' }}>
+            <h3 style={{ ...headingStyle, marginTop: 0 }}>
+                My Profile
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                <div style={styles.avatarLarge}>
+                    {profile?.name?.[0]?.toUpperCase() || '?'}
                 </div>
-            ) : (
-                <>
-                    <h3 style={styles.profileName}>{profile?.name || 'No name set'}</h3>
-                    <p style={styles.profileWard}>📍 {profile?.ward || 'No ward set'}</p>
-                    <p style={styles.profilePhone}>{profile?.phone}</p>
-                    <button style={styles.editBtn} onClick={() => setEditing(true)}>
-                        <Edit2 size={12} style={{ marginRight: 4 }} /> Edit Profile
-                    </button>
-                </>
-            )}
-        </div>
+
+                {editing ? (
+                    <div style={styles.editForm}>
+                        <input
+                            style={inputNeumorphic}
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                            placeholder="Your name"
+                        />
+                        <input
+                            style={{ ...inputNeumorphic, marginTop: '6px' }}
+                            value={ward}
+                            onChange={e => setWard(e.target.value)}
+                            placeholder="Ward / Area"
+                        />
+                        <div style={styles.editBtns}>
+                            <button style={styles.cancelBtn} onClick={() => setEditing(false)}>Cancel</button>
+                            <button style={styles.saveBtn} onClick={handleSave}>Save</button>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <h4 style={{ ...textBaseStyle, fontWeight: 700, fontSize: '1.15rem', margin: '0 0 4px', fontFamily: 'Clash Display, Satoshi, sans-serif' }}>
+                            {profile?.name || 'No name set'}
+                        </h4>
+                        <div style={{ ...textBaseStyle, opacity: 0.7, fontSize: '0.9rem', marginBottom: 12 }}>
+                            {totalReports} reports • {resolvedReports} resolved
+                        </div>
+
+                        {/* Neumorphic progress bar from Framer component */}
+                        <div
+                            style={{
+                                width: '100%',
+                                marginTop: 4,
+                                marginBottom: 14,
+                                borderRadius: 12,
+                                overflow: "hidden",
+                                background: "rgba(15, 23, 42, 0.08)",
+                                height: 10
+                            }}
+                        >
+                            <motion.div
+                                initial={{ width: "0%" }}
+                                animate={{ width: `${resolutionPercentage || 72}%` }}
+                                transition={{ duration: 1.2 }}
+                                style={{ height: 10, background: accentColor }}
+                            />
+                        </div>
+
+                        <p style={styles.profileWard}>📍 {profile?.ward || 'No ward set'}</p>
+                        <p style={styles.profilePhone}>{profile?.phone}</p>
+                        <button style={styles.editBtn} onClick={() => setEditing(true)}>
+                            <Edit2 size={12} style={{ marginRight: 4 }} /> Edit Profile
+                        </button>
+                    </>
+                )}
+            </div>
+        </article>
     );
 
     const achievementsElement = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div style={styles.section}>
+        <article style={{ ...sharedShellStyle, padding: 18, boxSizing: 'border-box' }}>
+            <h3 style={{ ...headingStyle, marginTop: 0 }}>
+                My Badges & Progress
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: 12 }}>
                 <XPBar xp={profile?.xp || 0} />
-            </div>
-            <div style={styles.section}>
-                <h4 style={styles.sectionTitle}>My Badges</h4>
                 <BadgeGrid earnedBadges={badges} />
             </div>
-        </div>
+        </article>
     );
 
     const reportsElement = (
-        <div style={styles.section}>
-            <h4 style={styles.sectionTitle}>My Reports ({myIssues.length})</h4>
+        <article style={{ ...sharedShellStyle, padding: 18, boxSizing: 'border-box', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ ...headingStyle, marginTop: 0 }}>
+                Recent Reports
+            </h3>
             {myIssues.length === 0 ? (
                 <p style={styles.empty}>No issues reported yet</p>
             ) : (
-                myIssues.map(issue => (
-                    <div
-                        key={issue._id}
-                        style={styles.issueRow}
-                        onClick={() => navigate(`/issue/${issue._id}`)}
-                    >
-                        <div style={{ flex: 1, minWidth: 0, paddingRight: '0.5rem' }}>
-                            <p style={styles.issueTitle}>{issue.title}</p>
-                            <p style={styles.issueMeta}>
-                                {issue.category?.replace('_', ' ')} • {formatDistanceToNow(issue.createdAt)}
-                            </p>
+                <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1, minHeight: 0, marginTop: 8 }}>
+                    {myIssues.map(issue => (
+                        <div
+                            key={issue._id}
+                            style={{
+                                ...textBaseStyle,
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '12px 0',
+                                borderBottom: "1px solid rgba(0,0,0,0.06)",
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => navigate(`/issue/${issue._id}`)}
+                        >
+                            <div style={{ flex: 1, minWidth: 0, paddingRight: '12px' }}>
+                                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {issue.title}
+                                </p>
+                                <p style={{ margin: '4px 0 0', fontSize: '0.78rem', opacity: 0.7, textTransform: 'capitalize' }}>
+                                    {issue.category?.replace('_', ' ')} • {formatDistanceToNow(issue.createdAt)}
+                                </p>
+                            </div>
+                            <IssueStatusBadge status={issue.status} />
                         </div>
-                        <IssueStatusBadge status={issue.status} />
-                    </div>
-                ))
+                    ))}
+                </div>
             )}
-        </div>
+        </article>
     );
 
     return (
@@ -145,26 +232,26 @@ export default function Profile() {
             {isMobile ? (
                 // Mobile layout
                 <div style={{ paddingBottom: '20px' }}>
-                    <div style={styles.header}>
+                    <div style={{ ...styles.header, ...sharedShellStyle, borderRadius: '16px', margin: '4px 0 12px', padding: '10px 14px' }}>
                         <h2 style={styles.title}>My Profile</h2>
                         <button onClick={handleLogout} style={styles.logoutBtn}>
                             <LogOut size={18} color="#ef4444" />
                         </button>
                     </div>
 
-                    <div style={styles.mobileCardWrapper}>
+                    <div style={{ marginBottom: '12px' }}>
                         {profileCardElement}
                     </div>
 
                     {/* Stats */}
-                    <div style={styles.statsRow}>
+                    <div style={{ ...styles.statsRow, gap: '8px', borderBottom: 'none', marginBottom: '12px' }}>
                         {[
                             { label: 'Reported', value: profile?.issuesReported || 0, icon: '📋' },
                             { label: 'Verified', value: profile?.issuesVerified || 0, icon: '✅' },
                             { label: 'Badges', value: badges.length, icon: '🏅' },
                             { label: 'Total XP', value: profile?.xp || 0, icon: '⭐' },
                         ].map(s => (
-                            <div key={s.label} style={styles.statCard}>
+                            <div key={s.label} style={{ ...styles.statCard, ...sharedShellStyle, borderRadius: '16px', padding: '12px 6px' }}>
                                 <span style={{ fontSize: '1.25rem' }}>{s.icon}</span>
                                 <p style={styles.statValue}>{s.value}</p>
                                 <p style={styles.statLabel}>{s.label}</p>
@@ -172,91 +259,58 @@ export default function Profile() {
                         ))}
                     </div>
 
-                    {achievementsElement}
-                    {reportsElement}
+                    <div style={{ marginBottom: '12px' }}>
+                        {achievementsElement}
+                    </div>
+
+                    <div>
+                        {reportsElement}
+                    </div>
                 </div>
             ) : (
-                // Desktop full-page responsive website layout
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', padding: '0.5rem 0' }}>
-                    {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
-                        <div>
-                            <h2 style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a', margin: '0 0 0.25rem', letterSpacing: '-0.02em' }}>
-                                My Reports Dashboard
-                            </h2>
-                            <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>
-                                Track your submitted cases, achievements, and contributor ranking
-                            </p>
-                        </div>
+                // Desktop full-page responsive website layout (exactly matches Framer 0.85fr 1.15fr split layout)
+                <section style={{
+                    display: 'grid',
+                    gridTemplateColumns: '0.85fr 1.15fr',
+                    gap: '16px',
+                    width: '100%',
+                    height: 'calc(100vh - 110px)',
+                    minHeight: 0
+                }}>
+                    {/* Left Column: Profile details & achievements */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: 0 }}>
+                        {profileCardElement}
+                        {achievementsElement}
                     </div>
 
-                    {/* Content Columns split */}
-                    <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-                        {/* Left Column: Avatar details, stats, badges */}
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                            {/* Card wrapper */}
-                            <div style={{ background: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '20px', padding: '2rem', boxShadow: 'var(--shadow-flat)' }}>
-                                {profileCardElement}
-                            </div>
-
-                            {/* Stats grids */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
-                                {[
-                                    { label: 'Reported', value: profile?.issuesReported || 0, icon: '📋' },
-                                    { label: 'Verified', value: profile?.issuesVerified || 0, icon: '✅' },
-                                    { label: 'Badges', value: badges.length, icon: '🏅' },
-                                    { label: 'Total XP', value: profile?.xp || 0, icon: '⭐' },
-                                ].map(s => (
-                                    <div key={s.label} style={{ ...styles.statCard, border: '1px solid rgba(255,255,255,0.4)', borderRadius: '16px', padding: '1.25rem 0.5rem', boxShadow: 'var(--shadow-flat)' }}>
-                                        <span style={{ fontSize: '1.4rem' }}>{s.icon}</span>
-                                        <p style={styles.statValue}>{s.value}</p>
-                                        <p style={styles.statLabel}>{s.label}</p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Badges and XP */}
-                            <div style={{ background: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '20px', padding: '2rem', boxShadow: 'var(--shadow-flat)' }}>
-                                {achievementsElement}
-                            </div>
-                        </div>
-
-                        {/* Right Column: Reports */}
-                        <div style={{ flex: 1.5, background: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '20px', padding: '2rem', boxShadow: 'var(--shadow-flat)' }}>
-                            {reportsElement}
-                        </div>
+                    {/* Right Column: Reports */}
+                    <div style={{ minHeight: 0 }}>
+                        {reportsElement}
                     </div>
-                </div>
+                </section>
             )}
         </ResponsiveLayout>
     );
 }
 
 const styles = {
-    centered: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#fff', borderBottom: '1px solid #eee' },
-    title: { margin: 0, fontSize: '1.1rem', fontWeight: '700' },
+    centered: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80vh', color: '#94a3b8' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' },
+    title: { margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' },
     logoutBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' },
-    mobileCardWrapper: { background: '#fff', padding: '1.5rem', borderBottom: '1px solid #eee', marginBottom: '1rem' },
-    profileCard: { textAlign: 'center' },
-    avatarLarge: { width: '84px', height: '84px', borderRadius: '50%', background: 'linear-gradient(135deg, #0066FF 0%, #0052cc 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '2.2rem', margin: '0 auto 1rem', boxShadow: '0 4px 15px rgba(0, 102, 255, 0.2)' },
-    profileName: { margin: '0 0 0.25rem', fontSize: '1.35rem', fontWeight: '900', color: '#1e293b', letterSpacing: '-0.01em' },
+    avatarLarge: { width: '84px', height: '84px', borderRadius: '50%', background: 'linear-gradient(135deg, #0066FF 0%, #0052cc 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '2.2rem', margin: '0 auto 1rem', boxShadow: '0 8px 24px rgba(0, 102, 255, 0.2)' },
     profileWard: { margin: '0 0 0.25rem', fontSize: '0.9rem', color: '#64748b', fontWeight: '700' },
     profilePhone: { margin: '0 0 1rem', fontSize: '0.85rem', color: '#94a3b8', fontWeight: '600' },
-    editBtn: { display: 'inline-flex', alignItems: 'center', justifySelf: 'center', padding: '0.5rem 1.25rem', borderRadius: '20px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '800', color: '#475569', boxShadow: 'var(--shadow-flat)' },
-    editForm: { display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.5rem' },
-    input: { padding: '0.75rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '0.95rem', background: '#f8fafc', outline: 'none' },
-    editBtns: { display: 'flex', gap: '0.5rem' },
-    cancelBtn: { flex: 1, padding: '0.65rem', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontWeight: '700', color: '#64748b' },
-    saveBtn: { flex: 1, padding: '0.65rem', borderRadius: '12px', border: 'none', background: '#0066FF', color: '#fff', cursor: 'pointer', fontWeight: '700' },
-    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0', borderBottom: '1px solid #eee', marginBottom: '1rem' },
-    statCard: { background: '#fff', padding: '1rem 0.5rem', textAlign: 'center' },
-    statValue: { margin: '0.35rem 0 0.1rem', fontSize: '1.35rem', fontWeight: '950', color: '#1e293b' },
-    statLabel: { margin: 0, fontSize: '0.7rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.02em' },
+    editBtn: { display: 'inline-flex', alignItems: 'center', justifySelf: 'center', padding: '0.5rem 1.25rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.7)', background: '#fff', cursor: 'pointer', fontSize: '0.82rem', fontWeight: '800', color: '#475569', boxShadow: '4px 4px 10px rgba(15,23,42,0.05)' },
+    editForm: { display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.5rem', width: '100%' },
+    editBtns: { display: 'flex', gap: '0.5rem', marginTop: '6px' },
+    cancelBtn: { flex: 1, padding: '0.65rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontWeight: '700', color: '#64748b', boxShadow: '2px 2px 6px rgba(15,23,42,0.04)' },
+    saveBtn: { flex: 1, padding: '0.65rem', borderRadius: '12px', border: 'none', background: '#0066FF', color: '#fff', cursor: 'pointer', fontWeight: '700', boxShadow: '0 4px 12px rgba(0, 102, 255, 0.2)' },
+    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' },
+    statCard: { background: '#fff', textAlign: 'center' },
+    statValue: { margin: '0.35rem 0 0.1rem', fontSize: '1.35rem', fontWeight: '950', color: '#0f172a' },
+    statLabel: { margin: 0, fontSize: '0.68rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em' },
     section: { background: 'none', padding: '0.5rem 0' },
-    sectionTitle: { margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: '900', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem', letterSpacing: '-0.01em' },
-    empty: { color: '#94a3b8', fontSize: '0.88rem', padding: '1.5rem 0' },
-    issueRow: { display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 0', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background 0.2s' },
-    issueTitle: { margin: 0, fontWeight: '750', fontSize: '0.92rem', color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-    issueMeta: { margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#64748b', textTransform: 'capitalize' }
+    sectionTitle: { margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: '900', color: '#0f172a', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem', letterSpacing: '-0.01em', fontFamily: 'Clash Display, Satoshi, sans-serif' },
+    empty: { color: '#94a3b8', fontSize: '0.88rem', padding: '1.5rem 0', fontWeight: '600' }
 };

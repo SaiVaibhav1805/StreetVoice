@@ -36,11 +36,11 @@ export default function ResponsiveLayout({ children }) {
     }, []);
 
     const navItems = [
-        { path: '/home', label: 'Home' },
-        { path: '/report', label: 'Report Issue' },
-        { path: '/profile', label: 'My Reports' },
-        { path: '/dashboard', label: 'Dashboard' },
-        { path: '/leaderboard', label: 'Community' },
+        { path: '/home', label: 'Home', view: 'Home' },
+        { path: '/report', label: 'Report Issue', view: 'Report Issue' },
+        { path: '/profile', label: 'My Reports', view: 'My Reports' },
+        { path: '/dashboard', label: 'Dashboard', view: 'Dashboard' },
+        { path: '/leaderboard', label: 'Community', view: 'Community' },
     ];
 
     const handleCategoryClick = (val) => {
@@ -50,7 +50,6 @@ export default function ResponsiveLayout({ children }) {
             searchParams.set('category', val);
         }
         setSearchParams(searchParams);
-        // If not already on home page, redirect to home with that category filter!
         if (pathname !== '/home') {
             navigate(`/home?category=${val}`);
         }
@@ -65,11 +64,31 @@ export default function ResponsiveLayout({ children }) {
         c.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const surfaceColor = '#FFFFFF';
+    const textColor = '#0f172a';
+    const accentColor = '#0066FF';
+    const secondaryAccent = '#FF9500';
+
+    const sharedShellStyle = {
+        background: surfaceColor,
+        borderRadius: 24,
+        boxShadow: `10px 10px 22px rgba(15, 23, 42, 0.08), -10px -10px 22px rgba(255, 255, 255, 0.9)`,
+        border: `1px solid rgba(255,255,255,0.7)`,
+    };
+
+    const textBaseStyle = {
+        color: textColor,
+        fontFamily: "Satoshi, Clash Display, Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif",
+    };
+
     return (
-        <div style={styles.container}>
+        <div style={{
+            ...styles.container,
+            ...textBaseStyle,
+        }}>
             {/* Top Navigation Header (Desktop Only) */}
             {!isMobile && (
-                <header style={styles.topHeader}>
+                <header style={{ ...styles.topHeader, ...sharedShellStyle }}>
                     <div style={styles.logoBox} onClick={() => navigate('/home')}>
                         <span style={styles.logoIcon}>📍</span>
                         <span style={styles.logoText}>StreetVoice</span>
@@ -84,9 +103,12 @@ export default function ResponsiveLayout({ children }) {
                                     onClick={() => navigate(path)}
                                     style={{
                                         ...styles.navTab,
-                                        color: active ? '#0066FF' : '#64748b',
-                                        fontWeight: active ? '800' : '600',
-                                        borderBottom: active ? '3px solid #0066FF' : '3px solid transparent'
+                                        color: active ? '#FFFFFF' : textColor,
+                                        background: active ? accentColor : 'rgba(255,255,255,0.52)',
+                                        boxShadow: active 
+                                            ? '0 8px 22px rgba(0, 102, 255, 0.25)' 
+                                            : 'inset 2px 2px 6px rgba(15,23,42,0.05), inset -2px -2px 6px rgba(255,255,255,0.9)',
+                                        fontWeight: active ? '700' : '650',
                                     }}
                                 >
                                     {label}
@@ -119,7 +141,7 @@ export default function ResponsiveLayout({ children }) {
             <div style={styles.appBody}>
                 {/* Left Sidebar (Desktop Only) */}
                 {!isMobile && (
-                    <aside style={styles.sidebar}>
+                    <aside style={{ ...styles.sidebar, ...sharedShellStyle }}>
                         <div style={styles.searchBox}>
                             <Search size={16} color="#94a3b8" style={{ marginRight: '0.4rem' }} />
                             <input
@@ -141,15 +163,18 @@ export default function ResponsiveLayout({ children }) {
                                         onClick={() => handleCategoryClick(c.value)}
                                         style={{
                                             ...styles.categoryBtn,
-                                            background: active ? '#fff' : 'transparent',
-                                            boxShadow: active ? 'var(--shadow-flat)' : 'none',
-                                            fontWeight: active ? '800' : '500',
-                                            color: active ? '#0066FF' : '#1e293b'
+                                            background: active ? 'rgba(0,102,255,0.06)' : 'rgba(255,255,255,0.4)',
+                                            border: active ? `1px solid ${accentColor}` : '1px solid rgba(255,255,255,0.6)',
+                                            boxShadow: active 
+                                                ? 'inset 2px 2px 5px rgba(0,102,255,0.1)' 
+                                                : 'inset 2px 2px 5px rgba(15,23,42,0.04), inset -2px -2px 5px rgba(255,255,255,0.9)',
+                                            fontWeight: active ? '700' : '500',
+                                            color: active ? accentColor : '#475569'
                                         }}
                                     >
                                         <span style={styles.categoryEmoji}>{c.emoji}</span>
                                         <span style={styles.categoryLabel}>{c.label}</span>
-                                        {active && <span style={styles.activeDot} />}
+                                        {active && <span style={{ ...styles.activeDot, background: accentColor }} />}
                                     </button>
                                 );
                             })}
@@ -157,9 +182,9 @@ export default function ResponsiveLayout({ children }) {
 
                         {/* Gamification mini-banner */}
                         {user && (
-                            <div style={styles.gamificationMiniBanner}>
+                            <div style={{ ...styles.gamificationMiniBanner, ...sharedShellStyle, boxShadow: 'none', background: 'rgba(255,255,255,0.6)' }}>
                                 <div style={styles.bannerHeader}>
-                                    <Sparkles size={14} color="#FF9500" />
+                                    <Sparkles size={14} color="#FF9500" fill="#FF9500" />
                                     <span>Civic Rank</span>
                                 </div>
                                 <h4 style={styles.rankName}>
@@ -167,7 +192,7 @@ export default function ResponsiveLayout({ children }) {
                                 </h4>
                                 <div style={styles.xpTextRow}>
                                     <span>XP Balance</span>
-                                    <strong>{user.xp || 0} XP</strong>
+                                    <strong style={{ color: secondaryAccent }}>{user.xp || 0} XP</strong>
                                 </div>
                             </div>
                         )}
@@ -186,7 +211,7 @@ export default function ResponsiveLayout({ children }) {
                 </main>
             </div>
 
-            {/* Mobile Bottom Navigation Header */}
+            {/* Mobile Bottom Navigation */}
             {isMobile && <BottomNav />}
         </div>
     );
@@ -195,23 +220,22 @@ export default function ResponsiveLayout({ children }) {
 const styles = {
     container: {
         minHeight: '100vh',
-        background: '#f0f3f8',
+        background: 'linear-gradient(155deg, #f7f8fb 0%, #eef1f7 100%)',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: "'Outfit', 'Inter', sans-serif"
+        boxSizing: 'border-box',
+        padding: '12px'
     },
     topHeader: {
         height: '70px',
-        background: '#fff',
-        borderBottom: '1px solid #e2e8f0',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '0 2.5rem',
+        padding: '0 2rem',
         position: 'sticky',
         top: 0,
         zIndex: 1000,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.02)'
+        marginBottom: '12px'
     },
     logoBox: {
         display: 'flex',
@@ -231,19 +255,18 @@ const styles = {
     topNav: {
         display: 'flex',
         alignItems: 'center',
-        gap: '0.5rem',
+        gap: '10px',
         height: '100%'
     },
     navTab: {
         border: 'none',
-        background: 'none',
-        height: '100%',
+        height: '42px',
         padding: '0 1.25rem',
-        fontSize: '0.95rem',
+        fontSize: '0.92rem',
         cursor: 'pointer',
-        transition: 'all 0.2s',
+        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         outline: 'none',
-        marginTop: '3px' // Align height
+        borderRadius: '14px',
     },
     headerRight: {
         display: 'flex',
@@ -252,7 +275,7 @@ const styles = {
     },
     notificationBtn: {
         background: '#fff',
-        border: '1px solid #e2e8f0',
+        border: '1px solid rgba(255,255,255,0.7)',
         borderRadius: '50%',
         width: '40px',
         height: '40px',
@@ -261,7 +284,7 @@ const styles = {
         justifyContent: 'center',
         cursor: 'pointer',
         position: 'relative',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.01)'
+        boxShadow: '4px 4px 10px rgba(15,23,42,0.05), -4px -4px 10px #ffffff'
     },
     bellDot: {
         position: 'absolute',
@@ -276,10 +299,11 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         gap: '0.65rem',
-        background: '#f8fafc',
+        background: 'rgba(255,255,255,0.6)',
         padding: '0.35rem 0.85rem',
         borderRadius: '20px',
-        border: '1px solid #e2e8f0'
+        border: '1px solid rgba(255,255,255,0.7)',
+        boxShadow: '4px 4px 10px rgba(15,23,42,0.04)'
     },
     avatarMini: {
         width: '28px',
@@ -311,29 +335,27 @@ const styles = {
     appBody: {
         display: 'flex',
         flex: 1,
-        minHeight: 0
+        minHeight: 0,
+        gap: '14px'
     },
     sidebar: {
-        width: '250px',
-        background: '#f8fafc',
-        borderRight: '1px solid #e2e8f0',
+        width: '260px',
         padding: '1.5rem 1rem',
         display: 'flex',
         flexDirection: 'column',
         gap: '1.5rem',
-        position: 'sticky',
-        top: '70px',
-        height: 'calc(100vh - 70px)',
+        flexShrink: 0,
+        height: 'calc(100vh - 110px)',
         overflowY: 'auto'
     },
     searchBox: {
         display: 'flex',
         alignItems: 'center',
-        background: '#f0f3f8',
-        border: '1px solid #e2e8f0',
-        borderRadius: '12px',
+        background: 'rgba(255,255,255,0.5)',
+        border: '1px solid rgba(255,255,255,0.6)',
+        borderRadius: '14px',
         padding: '0.5rem 0.75rem',
-        boxShadow: 'var(--shadow-concave)'
+        boxShadow: 'inset 2px 2px 5px rgba(15,23,42,0.05), inset -2px -2px 5px rgba(255,255,255,0.9)'
     },
     searchInput: {
         border: 'none',
@@ -346,27 +368,25 @@ const styles = {
     categoryMenu: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.35rem'
+        gap: '8px'
     },
     menuLabel: {
-        fontSize: '0.75rem',
+        fontSize: '0.72rem',
         fontWeight: '800',
         color: '#94a3b8',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
         paddingLeft: '0.5rem',
-        marginBottom: '0.5rem'
+        marginBottom: '0.25rem'
     },
     categoryBtn: {
         display: 'flex',
         alignItems: 'center',
-        padding: '0.75rem 0.85rem',
+        padding: '10px 12px',
         borderRadius: '12px',
-        border: '1px solid transparent',
-        background: 'none',
         fontSize: '0.88rem',
         cursor: 'pointer',
-        transition: 'all 0.15s ease',
+        transition: 'all 0.2s ease',
         textAlign: 'left',
         outline: 'none',
         position: 'relative'
@@ -382,17 +402,13 @@ const styles = {
         width: '5px',
         height: '5px',
         borderRadius: '50%',
-        background: '#0066FF',
         position: 'absolute',
         right: '12px'
     },
     gamificationMiniBanner: {
         marginTop: 'auto',
-        background: '#fff',
-        border: '1px solid #e2e8f0',
         borderRadius: '16px',
         padding: '1rem',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.01)',
         textAlign: 'left'
     },
     bannerHeader: {
@@ -422,15 +438,15 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         minWidth: 0,
-        height: 'calc(100vh - 70px)',
+        height: 'calc(100vh - 110px)',
         overflowY: 'auto'
     },
     pageInner: {
         width: '100%',
-        padding: '1.25rem 2rem',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
-        flex: 1
+        flex: 1,
+        minHeight: 0
     }
 };
