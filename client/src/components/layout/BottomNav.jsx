@@ -1,17 +1,23 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { MapPin, Plus, LayoutDashboard, User, Trophy } from 'lucide-react'
-
-const tabs = [
-    { path: '/home', icon: MapPin, label: 'Map' },
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/report', icon: Plus, label: 'Report' },
-    { path: '/leaderboard', icon: Trophy, label: 'Leaders' },
-    { path: '/profile', icon: User, label: 'Profile' },
-]
+import { useAuth } from '../../context/AuthContext'
 
 export default function BottomNav() {
     const navigate = useNavigate()
     const { pathname } = useLocation()
+    const { user } = useAuth()
+
+    const isAuthority = user?.role === 'authority' || user?.role === 'moderator'
+    const tabs = isAuthority ? [
+        { path: '/authority', icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/home', icon: MapPin, label: 'Map' }
+    ] : [
+        { path: '/home', icon: MapPin, label: 'Map' },
+        { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/report', icon: Plus, label: 'Report' },
+        { path: '/leaderboard', icon: Trophy, label: 'Leaders' },
+        { path: '/profile', icon: User, label: 'Profile' },
+    ]
 
     return (
         <nav style={styles.nav}>

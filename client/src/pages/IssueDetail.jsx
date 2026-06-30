@@ -330,8 +330,8 @@ export default function IssueDetail() {
             <div style={{ width: '100%' }}>
                 {/* Header Back button */}
                 <div style={styles.pageHeader}>
-                    <button onClick={() => navigate('/home')} style={styles.backBtn}>
-                        <ArrowLeft size={16} /> Back to Map
+                    <button onClick={() => (user?.role === 'authority' || user?.role === 'moderator') ? navigate('/authority') : navigate('/home')} style={styles.backBtn}>
+                        <ArrowLeft size={16} /> Back to {(user?.role === 'authority' || user?.role === 'moderator') ? 'Dashboard' : 'Map'}
                     </button>
                     <div style={styles.pageMetaHeader}>
                         <span>Case Reference: #{issue._id?.slice(-6)}</span>

@@ -57,11 +57,12 @@ export default function AuthorityPanel() {
 
     const handleAssign = async (id) => {
         try {
-            await api.post(`/authority/issues/${id}/assign`);
+            await api.patch(`/authority/issues/${id}/assign`);
             toast.success('Issue assigned to you');
             fetchData();
-        } catch {
-            toast.error('Failed to assign issue');
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to assign issue';
+            toast.error(msg);
         }
     };
 

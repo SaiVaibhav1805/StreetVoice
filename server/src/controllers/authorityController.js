@@ -116,29 +116,54 @@ export const updateIssueStatus = async (req, res) => {
 // PATCH /api/authority/issues/:id/assign — assign to authority user
 export const assignIssue = async (req, res) => {
   try {
-    const issue = await Issue.findByIdAndUpdate(
-      req.params.id,
-      {
-        assignedTo: req.user.userId,
-        status: 'assigned'
-      },
-      { new: true }
-    ).populate('assignedTo', 'name');
+    const issueId = req.params.id;
+    const issue = await Issue.findById(issueId);
 
     if (!issue) {
       return res.status(404).json({ success: false, message: 'Issue not found' });
     }
 
+    // Check if already assigned
+    if (issue.assignedTo) {
+      if (issue.assignedTo.toString() === req.user.userId.toString()) {
+        return res.status(200).json({ 
+          success: true, 
+          issue: await issue.populate('assignedTo', 'name'),
+          message: 'Issue already assigned to you' 
+        });
+      }
+      return res.status(400).json({ success: false, message: 'Issue assigned already' });
+    }
+
+    const previousStatus = issue.status;
+
+    // Assign issue and update status
+    issue.assignedTo = req.user.userId;
+    issue.status = 'assigned';
+    await issue.save();
+
+    // Create status history record
+    await StatusUpdate.create({
+      issue: issueId,
+      updatedBy: req.user.userId,
+      previousStatus,
+      newStatus: 'assigned',
+      note: 'Case assigned to officer'
+    });
+
+    await issue.populate('assignedTo', 'name');
+
     const io = req.app.get('io');
     if (io) {
-      io.to(req.params.id).emit('issue_updated', {
-        issueId: req.params.id,
+      io.to(issueId).emit('issue_updated', {
+        issueId,
         status: 'assigned'
       });
     }
 
     res.status(200).json({ success: true, issue });
   } catch (error) {
+    console.error('Assign issue error:', error);
     res.status(500).json({ success: false, message: 'Failed to assign issue' });
   }
 };

@@ -35,7 +35,11 @@ export default function ResponsiveLayout({ children }) {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const navItems = [
+    const isAuthority = user?.role === 'authority' || user?.role === 'moderator';
+    const navItems = isAuthority ? [
+        { path: '/authority', label: 'Dashboard', view: 'Dashboard' },
+        { path: '/home', label: 'Map View', view: 'Home' }
+    ] : [
         { path: '/home', label: 'Home', view: 'Home' },
         { path: '/report', label: 'Report Issue', view: 'Report Issue' },
         { path: '/profile', label: 'My Reports', view: 'My Reports' },
