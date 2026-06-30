@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+.git
+.gitignore
+.dockerignore
+**/.env
+**/*.log
+server/src/config/googleServiceAccount.json
