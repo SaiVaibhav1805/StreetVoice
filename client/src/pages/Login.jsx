@@ -15,13 +15,8 @@ import {
     Check, 
     Phone, 
     KeyRound, 
-    ShieldCheck, 
     Building2,
-    Users,
-    Wrench,
-    Truck,
-    Clock,
-    CheckCircle2
+    Users
 } from 'lucide-react';
 import { signInWithGoogle } from '../config/firebase';
 
@@ -37,12 +32,12 @@ const GoogleIcon = () => (
 
 // Apple Logo SVG
 const AppleIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#000000">
         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.64 1.35-.57.65-1.07 1.72-.94 2.74 1 .08 2.03-.49 2.65-1.24z"/>
     </svg>
 );
 
-// Microsoft Quad-Color Logo SVG
+// Microsoft Logo SVG
 const MicrosoftIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24">
         <path fill="#f25022" d="M1 1h10v10H1z"/>
@@ -50,6 +45,15 @@ const MicrosoftIcon = () => (
         <path fill="#00a4ef" d="M1 13h10v10H1z"/>
         <path fill="#ffb900" d="M13 13h10v10H13z"/>
     </svg>
+);
+
+// Illustrated Municipal Capitol Icon for Authority Login
+const MunicipalBuildingBadge = () => (
+    <div style={styles.municipalBadge}>
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#235032" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 21h18M4 18h16M4 10h16M12 2l8 5H4l8-5zM6 10v8M10 10v8M14 10v8M18 10v8"/>
+        </svg>
+    </div>
 );
 
 export default function Login() {
@@ -83,32 +87,8 @@ export default function Login() {
     const { loginWithCredentials, register, loginWithGoogle, loginWithOtp } = useAuth();
     const navigate = useNavigate();
 
-    // Palette tokens tailored to reference
-    const theme = isAuthority ? {
-        cardBg: '#0f172a',
-        leftBg: 'linear-gradient(145deg, #090e17 0%, #131c2e 100%)',
-        outerBg: '#090e17',
-        brandColor: '#ffffff',
-        sparkColor: '#38bdf8',
-        taglineColor: '#94a3b8',
-        titleColor: '#ffffff',
-        subColor: '#94a3b8',
-        inputBg: '#1e293b',
-        inputBorder: '1px solid rgba(148, 163, 184, 0.2)',
-        inputIconColor: '#94a3b8',
-        inputTextColor: '#ffffff',
-        buttonBg: '#2563eb',
-        buttonHover: '#1d4ed8',
-        buttonColor: '#ffffff',
-        buttonShadow: '0 6px 20px rgba(37, 99, 235, 0.35)',
-        checkboxColor: '#2563eb',
-        dividerLine: 'rgba(148, 163, 184, 0.2)',
-        dividerText: '#94a3b8',
-        socialCardBg: '#1e293b',
-        socialCardShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-        footerLinkColor: '#38bdf8'
-    } : {
-        // Pixel-accurate reference mint/sage palette
+    // Both Citizen and Authority share the clean organic sage / celadon theme
+    const theme = {
         cardBg: '#ffffff',
         leftBg: '#e9f3ec',
         outerBg: '#eaf4ee',
@@ -117,19 +97,19 @@ export default function Login() {
         taglineColor: '#6c8975',
         titleColor: '#183a24',
         subColor: '#5c7a67',
-        inputBg: '#e1eee4',
+        inputBg: '#dceee2',
         inputBorder: 'none',
         inputIconColor: '#2b5037',
         inputTextColor: '#163820',
-        buttonBg: '#2b5636',
-        buttonHover: '#22462b',
+        buttonBg: '#2c5839',
+        buttonHover: '#22462c',
         buttonColor: '#ffffff',
-        buttonShadow: '0 6px 20px rgba(43, 86, 54, 0.3)',
-        checkboxColor: '#2b5636',
-        dividerLine: 'rgba(43, 86, 54, 0.22)',
+        buttonShadow: '0 6px 20px rgba(44, 88, 57, 0.28)',
+        checkboxColor: '#2c5839',
+        dividerLine: 'rgba(44, 88, 57, 0.22)',
         dividerText: '#50705c',
         socialCardBg: '#ffffff',
-        socialCardShadow: '0 6px 20px rgba(0, 0, 0, 0.08)',
+        socialCardShadow: '0 6px 18px rgba(0, 0, 0, 0.08)',
         footerLinkColor: '#183a24'
     };
 
@@ -193,7 +173,7 @@ export default function Login() {
         setError('');
 
         if (!identifier.trim()) {
-            setError(isAuthority ? 'Please enter Officer Email or Department ID' : 'Please enter your email or phone number');
+            setError(isAuthority ? 'Please enter your email address' : 'Please enter your email address or phone');
             return;
         }
         if (!password) {
@@ -213,7 +193,7 @@ export default function Login() {
         }
     };
 
-    // Registration
+    // Registration (Citizen only)
     const handleSignUp = async (e) => {
         e?.preventDefault();
         setError('');
@@ -241,7 +221,7 @@ export default function Login() {
                 name: name.trim(),
                 identifier: identifier.trim(),
                 password,
-                role: isAuthority ? 'authority' : 'citizen',
+                role: 'citizen',
                 ward: ward.trim()
             });
             handleAuthRedirect(user);
@@ -303,16 +283,16 @@ export default function Login() {
         if (p && p !== portal) {
             setSearchParams({ portal: p });
         }
-        toast.success(`Loaded credentials for ${id}`);
+        toast.success(`Loaded demo credentials for ${id}`);
     };
 
     return (
         <div style={{ ...styles.pageWrapper, background: theme.outerBg }}>
-            {/* Top Gateway Back & Portal Switcher */}
+            {/* Top Navigation Bar: Back & Portal Switcher */}
             <header style={styles.topNav}>
                 <button 
                     onClick={() => navigate('/')} 
-                    style={{ ...styles.backBtn, color: isAuthority ? '#f8fafc' : '#183a24' }}
+                    style={styles.backBtn}
                 >
                     <ArrowLeft size={16} /> Back to Gateway
                 </button>
@@ -337,9 +317,9 @@ export default function Login() {
                         onClick={() => togglePortal('authority')}
                         style={{
                             ...styles.portalBtn,
-                            background: isAuthority ? '#2563eb' : 'transparent',
+                            background: isAuthority ? '#2c5839' : 'transparent',
                             color: isAuthority ? '#ffffff' : '#4a6d57',
-                            boxShadow: isAuthority ? '0 2px 10px rgba(37,99,235,0.4)' : 'none',
+                            boxShadow: isAuthority ? '0 2px 10px rgba(44,88,57,0.3)' : 'none',
                             fontWeight: isAuthority ? '700' : '500'
                         }}
                     >
@@ -349,55 +329,28 @@ export default function Login() {
                 </div>
             </header>
 
-            {/* Main Split-Screen Container Card */}
+            {/* Main Split-Screen Card */}
             <main style={styles.mainCard}>
                 
-                {/* ================= LEFT SIDE: CIVIC POSTER & HERO ================= */}
+                {/* ================= LEFT SIDE: HERO ARTWORK ================= */}
                 <div style={{ ...styles.leftPane, background: theme.leftBg }}>
-                    {!isAuthority ? (
-                        /* CITIZEN POSTER: Exact extracted artwork from reference */
+                    {isAuthority ? (
+                        /* AUTHORITY POSTER: Officer at Desktop with Live Civic Map */
+                        <div style={styles.posterContainer}>
+                            <img 
+                                src="/authority-hero.jpg" 
+                                alt="StreetVoice Authority - Cleaner Streets, Brighter Communities" 
+                                style={styles.heroPosterImg}
+                            />
+                        </div>
+                    ) : (
+                        /* CITIZEN POSTER: Put Civics into Action Sneaker */
                         <div style={styles.posterContainer}>
                             <img 
                                 src="/civic-hero.jpg" 
                                 alt="Put Civics into Action - Get involved in your community" 
                                 style={styles.heroPosterImg}
                             />
-                        </div>
-                    ) : (
-                        /* AUTHORITY DASHBOARD HERO */
-                        <div style={styles.authorityHero}>
-                            <div style={styles.authorityBadgeIcon}>
-                                <ShieldCheck size={40} color="#38bdf8" />
-                            </div>
-                            <h2 style={styles.authorityTitle}>
-                                PUT CIVIC GOVERNANCE INTO ACTION
-                            </h2>
-                            <p style={styles.authorityTagline}>
-                                RAPID MUNICIPAL TRIAGE • FIELD DISPATCH • 100% TRANSPARENCY
-                            </p>
-
-                            <div style={styles.dutyCardsGrid}>
-                                <div style={styles.dutyItem}>
-                                    <Wrench size={22} color="#38bdf8" />
-                                    <h4 style={styles.dutyItemTitle}>Pothole & Roads</h4>
-                                    <p style={styles.dutyItemDesc}>Inspect severity & dispatch GHMC road squads</p>
-                                </div>
-                                <div style={styles.dutyItem}>
-                                    <Truck size={22} color="#facc15" />
-                                    <h4 style={styles.dutyItemTitle}>Sanitation & Waste</h4>
-                                    <p style={styles.dutyItemDesc}>Clear garbage overflow & public sanitation</p>
-                                </div>
-                                <div style={styles.dutyItem}>
-                                    <Clock size={22} color="#c084fc" />
-                                    <h4 style={styles.dutyItemTitle}>72-Hour SLA</h4>
-                                    <p style={styles.dutyItemDesc}>Guaranteed prompt action tracked live</p>
-                                </div>
-                                <div style={styles.dutyItem}>
-                                    <CheckCircle2 size={22} color="#4ade80" />
-                                    <h4 style={styles.dutyItemTitle}>Citizen Proof</h4>
-                                    <p style={styles.dutyItemDesc}>Geospatial verification submitted by locals</p>
-                                </div>
-                            </div>
                         </div>
                     )}
                 </div>
@@ -406,52 +359,57 @@ export default function Login() {
                 <div style={{ ...styles.rightPane, background: theme.cardBg }}>
                     <div style={styles.formContent}>
                         
-                        {/* StreetVoice Brand Header */}
-                        <div style={styles.brandHeader}>
-                            <div style={styles.logoRow}>
-                                <h2 style={{ ...styles.logoText, color: theme.brandColor }}>
-                                    StreetVoice
-                                </h2>
-                                <span style={{ ...styles.logoSpark, color: theme.sparkColor }}>✦</span>
-                            </div>
-                            <p style={{ ...styles.logoTagline, color: theme.taglineColor }}>
-                                {isAuthority 
-                                    ? 'Municipal Administration • Departmental Triage' 
-                                    : 'Report • Participate • Create Change'
-                                }
-                            </p>
-                        </div>
+                        {/* AUTHORITY MODE: Municipal Badge & Header */}
+                        {isAuthority ? (
+                            <>
+                                <MunicipalBuildingBadge />
+                                <div style={styles.greetingHeader}>
+                                    <h3 style={{ ...styles.greetingTitle, color: theme.titleColor }}>
+                                        Authority Login
+                                    </h3>
+                                    <p style={{ ...styles.greetingSub, color: theme.subColor }}>
+                                        Access the dashboard to manage and resolve community reports.
+                                    </p>
+                                </div>
+                            </>
+                        ) : (
+                            /* CITIZEN MODE: StreetVoice Logo & Welcome Greeting */
+                            <>
+                                <div style={styles.brandHeader}>
+                                    <div style={styles.logoRow}>
+                                        <h2 style={{ ...styles.logoText, color: theme.brandColor }}>
+                                            StreetVoice
+                                        </h2>
+                                        <span style={{ ...styles.logoSpark, color: theme.sparkColor }}>✦</span>
+                                    </div>
+                                    <p style={{ ...styles.logoTagline, color: theme.taglineColor }}>
+                                        Report • Participate • Create Change
+                                    </p>
+                                </div>
 
-                        {/* Welcome Greeting */}
-                        <div style={styles.greetingHeader}>
-                            <h3 style={{ ...styles.greetingTitle, color: theme.titleColor }}>
-                                {mode === 'signup' 
-                                    ? (isAuthority ? 'Authority Register' : 'Create an Account') 
-                                    : (mode === 'otp' ? 'Phone OTP Sign-In' : (isAuthority ? 'Officer Login' : 'Welcome Back'))
-                                }
-                            </h3>
-                            <p style={{ ...styles.greetingSub, color: theme.subColor }}>
-                                {mode === 'signup'
-                                    ? 'Join thousands of citizens making their city better.'
-                                    : (mode === 'otp'
-                                        ? 'Enter your mobile number for instant verification code.'
-                                        : (isAuthority 
-                                            ? 'Enter departmental credentials to access triage desk.' 
-                                            : 'Login to continue and make your community better.'
-                                          )
-                                      )
-                                }
-                            </p>
-                        </div>
+                                <div style={styles.greetingHeader}>
+                                    <h3 style={{ ...styles.greetingTitle, color: theme.titleColor }}>
+                                        {mode === 'signup' 
+                                            ? 'Create an Account' 
+                                            : (mode === 'otp' ? 'Phone OTP Sign-In' : 'Welcome Back')
+                                        }
+                                    </h3>
+                                    <p style={{ ...styles.greetingSub, color: theme.subColor }}>
+                                        {mode === 'signup'
+                                            ? 'Join thousands of citizens making their city better.'
+                                            : (mode === 'otp'
+                                                ? 'Enter your mobile number for instant verification code.'
+                                                : 'Login to continue and make your community better.'
+                                              )
+                                        }
+                                    </p>
+                                </div>
+                            </>
+                        )}
 
                         {/* Error Notice */}
                         {error && (
-                            <div style={{
-                                ...styles.errorBanner,
-                                background: isAuthority ? 'rgba(239, 68, 68, 0.15)' : 'rgba(220, 38, 38, 0.1)',
-                                color: isAuthority ? '#fca5a5' : '#b91c1c',
-                                borderColor: isAuthority ? 'rgba(239, 68, 68, 0.3)' : 'rgba(220, 38, 38, 0.25)'
-                            }}>
+                            <div style={styles.errorBanner}>
                                 <span>{error}</span>
                             </div>
                         )}
@@ -459,12 +417,12 @@ export default function Login() {
                         {/* 1. SIGN IN FORM */}
                         {mode === 'signin' && (
                             <form onSubmit={handleSignIn} style={styles.form}>
-                                {/* Email / Phone Field */}
+                                {/* Identifier Field */}
                                 <div style={styles.inputField}>
                                     <Mail size={19} color={theme.inputIconColor} style={styles.fieldIconLeft} />
                                     <input
                                         type="text"
-                                        placeholder={isAuthority ? "officer@ghmc.gov.in" : "Enter your email or phone"}
+                                        placeholder={isAuthority ? "Email address" : "Enter your email"}
                                         value={identifier}
                                         onChange={(e) => setIdentifier(e.target.value)}
                                         style={{
@@ -483,7 +441,7 @@ export default function Login() {
                                     <Lock size={19} color={theme.inputIconColor} style={styles.fieldIconLeft} />
                                     <input
                                         type={showPassword ? 'text' : 'password'}
-                                        placeholder="Enter your password"
+                                        placeholder="Password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         style={{
@@ -527,7 +485,7 @@ export default function Login() {
                                     <button
                                         type="button"
                                         onClick={() => toast('Demo accounts password is: password123', { icon: '🔑' })}
-                                        style={{ ...styles.forgotLink, color: isAuthority ? '#38bdf8' : '#183a24' }}
+                                        style={{ ...styles.forgotLink, color: theme.titleColor }}
                                     >
                                         Forgot password?
                                     </button>
@@ -544,14 +502,14 @@ export default function Login() {
                                         boxShadow: theme.buttonShadow
                                     }}
                                 >
-                                    <span>{loading ? 'Logging in...' : (isAuthority ? 'Access Authority Desk' : 'Login')}</span>
+                                    <span>{loading ? 'Logging in...' : 'Login'}</span>
                                     <ArrowRight size={18} />
                                 </button>
                             </form>
                         )}
 
-                        {/* 2. REGISTER / CREATE ACCOUNT FORM */}
-                        {mode === 'signup' && (
+                        {/* 2. CITIZEN REGISTER FORM */}
+                        {mode === 'signup' && !isAuthority && (
                             <form onSubmit={handleSignUp} style={styles.form}>
                                 <div style={styles.inputField}>
                                     <User size={19} color={theme.inputIconColor} style={styles.fieldIconLeft} />
@@ -755,7 +713,7 @@ export default function Login() {
                                     <div style={{ ...styles.dividerBar, background: theme.dividerLine }} />
                                 </div>
 
-                                {/* Floating Social Circles (Matching Mockup: Google, Apple, Microsoft/Demo) */}
+                                {/* Floating Social Circles (Exact Order: Google, Microsoft, Apple) */}
                                 <div style={styles.socialButtonsRow}>
                                     {/* Circle 1: Google */}
                                     <button
@@ -772,25 +730,10 @@ export default function Login() {
                                         <GoogleIcon />
                                     </button>
 
-                                    {/* Circle 2: Apple or SMS OTP */}
+                                    {/* Circle 2: Microsoft / Quick Demo */}
                                     <button
                                         type="button"
-                                        title="Sign in with Apple / Phone OTP"
-                                        onClick={() => { setMode('otp'); setError(''); }}
-                                        style={{
-                                            ...styles.circleButton,
-                                            background: theme.socialCardBg,
-                                            color: isAuthority ? '#ffffff' : '#000000',
-                                            boxShadow: theme.socialCardShadow
-                                        }}
-                                    >
-                                        <AppleIcon />
-                                    </button>
-
-                                    {/* Circle 3: Microsoft / Demo Key */}
-                                    <button
-                                        type="button"
-                                        title="Instant Demo Credentials"
+                                        title="Demo Credentials or Microsoft"
                                         onClick={() => setShowDemoModal(!showDemoModal)}
                                         style={{
                                             ...styles.circleButton,
@@ -800,70 +743,104 @@ export default function Login() {
                                     >
                                         <MicrosoftIcon />
                                     </button>
+
+                                    {/* Circle 3: Apple / Phone OTP */}
+                                    <button
+                                        type="button"
+                                        title="Apple Sign-In / SMS OTP"
+                                        onClick={() => { setMode('otp'); setError(''); }}
+                                        style={{
+                                            ...styles.circleButton,
+                                            background: theme.socialCardBg,
+                                            color: '#000000',
+                                            boxShadow: theme.socialCardShadow
+                                        }}
+                                    >
+                                        <AppleIcon />
+                                    </button>
                                 </div>
                             </>
                         )}
 
                         {/* Demo Credentials Drawer */}
                         {showDemoModal && (
-                            <div style={{
-                                ...styles.demoBox,
-                                background: isAuthority ? '#1e293b' : '#f4faf5',
-                                borderColor: isAuthority ? 'rgba(255,255,255,0.1)' : 'rgba(43,86,54,0.15)'
-                            }}>
+                            <div style={styles.demoBox}>
                                 <div style={{ fontSize: '0.8rem', fontWeight: '700', marginBottom: '8px', color: theme.titleColor }}>
                                     Select Demo Account (Password: password123):
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => fillDemo('vaibhav@streetvoice.org', 'password123', 'citizen')}
-                                        style={styles.demoAccountBtn}
-                                    >
-                                        <span>👤 Sai Vaibhav (Citizen Demo)</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => fillDemo('officer@ghmc.gov.in', 'password123', 'authority')}
-                                        style={styles.demoAccountBtn}
-                                    >
-                                        <span>🏛️ GHMC Authority Officer</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => fillDemo('moderator@streetvoice.org', 'password123', 'authority')}
-                                        style={styles.demoAccountBtn}
-                                    >
-                                        <span>🛡️ Chief Moderator</span>
-                                    </button>
+                                    {isAuthority ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => fillDemo('officer@ghmc.gov.in', 'password123', 'authority')}
+                                                style={styles.demoAccountBtn}
+                                            >
+                                                <span>🏛️ GHMC Authority Officer (officer@ghmc.gov.in)</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => fillDemo('moderator@streetvoice.org', 'password123', 'authority')}
+                                                style={styles.demoAccountBtn}
+                                            >
+                                                <span>🛡️ Chief Moderator (moderator@streetvoice.org)</span>
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => fillDemo('vaibhav@streetvoice.org', 'password123', 'citizen')}
+                                            style={styles.demoAccountBtn}
+                                        >
+                                            <span>👤 Sai Vaibhav (vaibhav@streetvoice.org)</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         )}
 
                         {/* Bottom Footer Switcher */}
                         <div style={styles.footerRow}>
-                            {mode === 'signup' ? (
-                                <p style={{ ...styles.footerCaption, color: theme.subColor }}>
-                                    Already have an account?{' '}
-                                    <button
-                                        type="button"
-                                        onClick={() => { setMode('signin'); setError(''); }}
-                                        style={{ ...styles.footerLinkBold, color: theme.footerLinkColor }}
-                                    >
-                                        Login
-                                    </button>
-                                </p>
-                            ) : (
+                            {isAuthority ? (
+                                /* Authority Footer: "Don't have an account? Contact Administrator" */
                                 <p style={{ ...styles.footerCaption, color: theme.subColor }}>
                                     Don't have an account?{' '}
                                     <button
                                         type="button"
-                                        onClick={() => { setMode('signup'); setError(''); }}
+                                        onClick={() => {
+                                            toast('Officer registration is managed by GHMC municipal IT. Use demo officer login to test.', { icon: 'ℹ️' });
+                                            setShowDemoModal(true);
+                                        }}
                                         style={{ ...styles.footerLinkBold, color: theme.footerLinkColor }}
                                     >
-                                        Register
+                                        Contact Administrator
                                     </button>
                                 </p>
+                            ) : (
+                                /* Citizen Footer: "Don't have an account? Register" / "Already have an account? Login" */
+                                mode === 'signup' ? (
+                                    <p style={{ ...styles.footerCaption, color: theme.subColor }}>
+                                        Already have an account?{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => { setMode('signin'); setError(''); }}
+                                            style={{ ...styles.footerLinkBold, color: theme.footerLinkColor }}
+                                        >
+                                            Login
+                                        </button>
+                                    </p>
+                                ) : (
+                                    <p style={{ ...styles.footerCaption, color: theme.subColor }}>
+                                        Don't have an account?{' '}
+                                        <button
+                                            type="button"
+                                            onClick={() => { setMode('signup'); setError(''); }}
+                                            style={{ ...styles.footerLinkBold, color: theme.footerLinkColor }}
+                                        >
+                                            Register
+                                        </button>
+                                    </p>
+                                )
                             )}
                         </div>
 
@@ -909,7 +886,8 @@ const styles = {
         gap: '0.4rem',
         padding: '0.55rem 1rem',
         borderRadius: '999px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+        color: '#183a24'
     },
     portalToggle: {
         display: 'flex',
@@ -943,7 +921,6 @@ const styles = {
         boxShadow: '0 20px 60px rgba(25, 60, 35, 0.1)',
         border: '1px solid rgba(0, 0, 0, 0.05)'
     },
-    // Left Pane
     leftPane: {
         flex: '1 1 50%',
         minWidth: '320px',
@@ -968,72 +945,6 @@ const styles = {
         objectFit: 'cover',
         display: 'block'
     },
-    authorityHero: {
-        padding: '3rem 2rem',
-        width: '100%',
-        maxWidth: '460px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        boxSizing: 'border-box'
-    },
-    authorityBadgeIcon: {
-        width: '74px',
-        height: '74px',
-        borderRadius: '50%',
-        background: 'rgba(56, 189, 248, 0.12)',
-        border: '1px solid rgba(56, 189, 248, 0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '1.25rem'
-    },
-    authorityTitle: {
-        fontSize: '1.65rem',
-        fontWeight: '800',
-        color: '#ffffff',
-        letterSpacing: '-0.02em',
-        margin: '0 0 0.5rem',
-        lineHeight: 1.2
-    },
-    authorityTagline: {
-        fontSize: '0.78rem',
-        fontWeight: '700',
-        color: '#38bdf8',
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-        margin: '0 0 2rem'
-    },
-    dutyCardsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '12px',
-        width: '100%',
-        textAlign: 'left'
-    },
-    dutyItem: {
-        background: 'rgba(30, 41, 59, 0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '16px',
-        padding: '1rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px'
-    },
-    dutyItemTitle: {
-        fontSize: '0.85rem',
-        fontWeight: '700',
-        color: '#ffffff',
-        margin: '4px 0 2px'
-    },
-    dutyItemDesc: {
-        fontSize: '0.75rem',
-        color: '#94a3b8',
-        margin: 0,
-        lineHeight: 1.3
-    },
-    // Right Pane
     rightPane: {
         flex: '1 1 50%',
         minWidth: '320px',
@@ -1050,6 +961,18 @@ const styles = {
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center'
+    },
+    municipalBadge: {
+        width: '68px',
+        height: '68px',
+        borderRadius: '50%',
+        background: '#dceee2',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '1.25rem',
+        border: '1px solid rgba(44, 88, 57, 0.15)',
+        boxShadow: '0 4px 14px rgba(44, 88, 57, 0.08)'
     },
     brandHeader: {
         marginBottom: '1.5rem',
@@ -1097,7 +1020,9 @@ const styles = {
         width: '100%',
         padding: '0.7rem 1rem',
         borderRadius: '14px',
-        border: '1px solid',
+        border: '1px solid rgba(220, 38, 38, 0.25)',
+        background: 'rgba(220, 38, 38, 0.1)',
+        color: '#b91c1c',
         fontSize: '0.82rem',
         marginBottom: '1.25rem',
         lineHeight: 1.4,
@@ -1229,7 +1154,8 @@ const styles = {
         width: '100%',
         borderRadius: '16px',
         padding: '0.85rem',
-        border: '1px solid',
+        border: '1px solid rgba(44, 88, 57, 0.15)',
+        background: '#f4faf5',
         textAlign: 'left',
         boxSizing: 'border-box'
     },
@@ -1242,7 +1168,7 @@ const styles = {
         fontSize: '0.8rem',
         fontWeight: '600',
         cursor: 'pointer',
-        color: 'inherit'
+        color: '#183a24'
     },
     footerRow: {
         marginTop: '2rem',
