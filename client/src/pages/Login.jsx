@@ -9,12 +9,15 @@ import {
     Eye, 
     EyeOff, 
     ShieldCheck, 
-    Sparkles, 
     Check, 
     KeyRound,
-    HelpCircle,
     Building2,
-    Users
+    Users,
+    Wrench,
+    CheckCircle2,
+    Clock,
+    Truck,
+    MapPin
 } from 'lucide-react';
 import { signInWithGoogle } from '../config/firebase';
 
@@ -59,18 +62,17 @@ export default function Login() {
     const { loginWithCredentials, register, loginWithGoogle, loginWithOtp } = useAuth();
     const navigate = useNavigate();
 
-    // Theme tokens based on portal
+    // Visual theme palette
     const theme = isAuthority ? {
-        bg: 'linear-gradient(145deg, #090e17 0%, #0f172a 50%, #1e293b 100%)',
+        leftBg: '#090e17',
+        rightBg: '#0f172a',
         textColor: '#f8fafc',
         titleColor: '#ffffff',
         subColor: '#94a3b8',
         inputBg: '#1e293b',
-        inputBorder: '1px solid rgba(148, 163, 184, 0.2)',
+        inputBorder: '1px solid rgba(148, 163, 184, 0.25)',
         inputColor: '#ffffff',
-        placeholderColor: '#64748b',
         buttonBg: '#2563eb',
-        buttonHover: '#1d4ed8',
         buttonColor: '#ffffff',
         buttonShadow: '0 4px 18px rgba(37, 99, 235, 0.35)',
         dividerLine: 'rgba(148, 163, 184, 0.2)',
@@ -78,21 +80,18 @@ export default function Login() {
         socialCardBg: '#1e293b',
         socialCardBorder: '1px solid rgba(255, 255, 255, 0.08)',
         socialCardShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-        accent: '#38bdf8',
-        badgeBg: 'rgba(56, 189, 248, 0.12)',
-        badgeBorder: 'rgba(56, 189, 248, 0.3)'
+        accent: '#38bdf8'
     } : {
-        // Reference image sage/mint palette
-        bg: 'linear-gradient(180deg, #d8ece0 0%, #cee4d6 100%)',
+        // Exact reference sage / mint palette
+        leftBg: '#f6f9f7',
+        rightBg: '#d8ece0',
         textColor: '#1e3d27',
         titleColor: '#20452d',
         subColor: '#4f725a',
         inputBg: '#8ea896',
         inputBorder: 'none',
         inputColor: '#173620',
-        placeholderColor: '#2b5037',
         buttonBg: '#2c5936',
-        buttonHover: '#22462a',
         buttonColor: '#ffffff',
         buttonShadow: '0 4px 16px rgba(44, 89, 54, 0.28)',
         dividerLine: 'rgba(44, 89, 54, 0.25)',
@@ -100,9 +99,7 @@ export default function Login() {
         socialCardBg: '#ffffff',
         socialCardBorder: 'none',
         socialCardShadow: '0 6px 18px rgba(0, 0, 0, 0.08)',
-        accent: '#2c5936',
-        badgeBg: 'rgba(44, 89, 54, 0.08)',
-        badgeBorder: 'rgba(44, 89, 54, 0.2)'
+        accent: '#2c5936'
     };
 
     const togglePortal = (target) => {
@@ -126,7 +123,7 @@ export default function Login() {
         }
     };
 
-    // Google Auth
+    // 1. Google Sign-in
     const handleGoogleSignIn = async () => {
         setError('');
         setGoogleLoading(true);
@@ -149,10 +146,8 @@ export default function Login() {
                 setError('Google sign-in popup was closed before completing.');
             } else if (err.code === 'auth/unauthorized-domain') {
                 const domain = window.location.hostname;
-                setError(`Domain "${domain}" is not authorized. Please add "${domain}" in Firebase Console > Authentication > Settings > Authorized domains.`);
+                setError(`Domain "${domain}" is not authorized. Add "${domain}" in Firebase Console > Authentication > Settings > Authorized domains.`);
                 toast.error(`Authorize "${domain}" in Firebase Console`, { duration: 6000 });
-            } else if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/configuration-not-found') {
-                setError('Google Auth is not enabled in Firebase Console. Please log in with Email/Phone below.');
             } else {
                 setError(err.message || 'Google sign-in failed. Please try again.');
             }
@@ -161,7 +156,7 @@ export default function Login() {
         }
     };
 
-    // Email/Phone Login
+    // 2. Email or Phone Login
     const handleSignIn = async (e) => {
         e?.preventDefault();
         setError('');
@@ -187,7 +182,7 @@ export default function Login() {
         }
     };
 
-    // Registration
+    // 3. Registration
     const handleSignUp = async (e) => {
         e?.preventDefault();
         setError('');
@@ -227,7 +222,7 @@ export default function Login() {
         }
     };
 
-    // Phone OTP Flow
+    // 4. Phone OTP
     const handleSendOTP = async () => {
         setError('');
         if (!otpPhone || otpPhone.length < 10) {
@@ -277,298 +272,290 @@ export default function Login() {
         if (p && p !== portal) {
             setSearchParams({ portal: p });
         }
-        toast.success(`Autofilled credentials for ${id}`);
+        toast.success(`Autofilled demo credentials for ${id}`);
     };
 
     return (
-        <div style={{ ...styles.page, background: theme.bg }}>
-            {/* Top Gateway Back Button */}
-            <button onClick={() => navigate('/')} style={{ ...styles.backBtn, color: theme.titleColor }}>
-                <ArrowLeft size={16} /> Back to Gateway
-            </button>
+        <div style={styles.splitPage}>
+            {/* Top Navigation Bar: Back & Portal Switcher */}
+            <div style={styles.topBar}>
+                <button 
+                    onClick={() => navigate('/')} 
+                    style={{ ...styles.backBtn, color: isAuthority ? '#ffffff' : '#20452d' }}
+                >
+                    <ArrowLeft size={16} /> Back to Gateway
+                </button>
 
-            {/* Portal Switcher Pill at Top */}
-            <div style={styles.topSwitcherContainer}>
-                <button 
-                    type="button"
-                    onClick={() => togglePortal('citizen')}
-                    style={{
-                        ...styles.topSwitcherBtn,
-                        background: !isAuthority ? (theme.socialCardBg || '#ffffff') : 'transparent',
-                        color: !isAuthority ? '#1b4332' : '#94a3b8',
-                        boxShadow: !isAuthority ? '0 2px 10px rgba(0,0,0,0.1)' : 'none',
-                        fontWeight: !isAuthority ? '700' : '500'
-                    }}
-                >
-                    <Users size={15} />
-                    <span>Citizen Portal</span>
-                </button>
-                <button 
-                    type="button"
-                    onClick={() => togglePortal('authority')}
-                    style={{
-                        ...styles.topSwitcherBtn,
-                        background: isAuthority ? '#2563eb' : 'transparent',
-                        color: isAuthority ? '#ffffff' : '#4f725a',
-                        boxShadow: isAuthority ? '0 2px 10px rgba(37,99,235,0.4)' : 'none',
-                        fontWeight: isAuthority ? '700' : '500'
-                    }}
-                >
-                    <Building2 size={15} />
-                    <span>Authority Desk</span>
-                </button>
+                <div style={styles.portalPill}>
+                    <button
+                        type="button"
+                        onClick={() => togglePortal('citizen')}
+                        style={{
+                            ...styles.portalPillBtn,
+                            background: !isAuthority ? '#ffffff' : 'transparent',
+                            color: !isAuthority ? '#20452d' : '#94a3b8',
+                            boxShadow: !isAuthority ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+                            fontWeight: !isAuthority ? '700' : '500'
+                        }}
+                    >
+                        <Users size={14} />
+                        <span>Citizen</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => togglePortal('authority')}
+                        style={{
+                            ...styles.portalPillBtn,
+                            background: isAuthority ? '#2563eb' : 'transparent',
+                            color: isAuthority ? '#ffffff' : '#4f725a',
+                            boxShadow: isAuthority ? '0 2px 8px rgba(37,99,235,0.4)' : 'none',
+                            fontWeight: isAuthority ? '700' : '500'
+                        }}
+                    >
+                        <Building2 size={14} />
+                        <span>Authority</span>
+                    </button>
+                </div>
             </div>
 
-            {/* Centered Main Form Container */}
-            <div style={styles.formContainer}>
+            {/* Split Screen Container */}
+            <div style={styles.splitWrapper}>
                 
-                {/* Header Title & Subtitle */}
-                <div style={styles.header}>
-                    <h1 style={{ ...styles.title, color: theme.titleColor }}>
-                        {mode === 'signup' 
-                            ? (isAuthority ? 'Authority Register' : 'Register')
-                            : (mode === 'otp' ? 'Phone OTP' : (isAuthority ? 'Officer Login' : 'Login'))
-                        }
-                    </h1>
-                    <p style={{ ...styles.subTitle, color: theme.subColor }}>
-                        {mode === 'signup' 
-                            ? 'Create new account' 
-                            : (mode === 'otp' 
-                                ? 'Enter phone number for instant login' 
-                                : (isAuthority 
-                                    ? 'Municipal Corporation & Departmental Triage' 
-                                    : 'Put civics into action • Sign in to your account'
-                                  )
-                              )
-                        }
-                    </p>
+                {/* ================= LEFT SIDE: ARTWORK & EDITORIAL PANEL ================= */}
+                <div style={{ ...styles.leftPane, background: theme.leftBg }}>
+                    {!isAuthority ? (
+                        /* CITIZEN POSTER PANEL */
+                        <div style={styles.posterWrapper}>
+                            <img 
+                                src="/civic-action-poster.jpg" 
+                                alt="Put Civics into Action Poster" 
+                                style={styles.posterImage}
+                            />
+                        </div>
+                    ) : (
+                        /* AUTHORITY CIVIC CONTROL PANEL */
+                        <div style={styles.authorityVisualWrapper}>
+                            <div style={styles.authorityVisualContent}>
+                                <div style={styles.authoritySealBadge}>
+                                    <ShieldCheck size={36} color="#38bdf8" />
+                                </div>
+                                <h2 style={styles.authorityHeroTitle}>
+                                    PUT CIVIC GOVERNANCE INTO ACTION
+                                </h2>
+                                <p style={styles.authorityHeroSubtitle}>
+                                    RAPID MUNICIPAL TRIAGE • FIELD DISPATCH • 100% TRANSPARENCY
+                                </p>
+
+                                <div style={styles.authorityDutyGrid}>
+                                    <div style={styles.dutyCard}>
+                                        <Wrench size={22} color="#38bdf8" />
+                                        <h4>Pothole & Road Patching</h4>
+                                        <p>Inspect severity & dispatch GHMC engineering squads</p>
+                                    </div>
+                                    <div style={styles.dutyCard}>
+                                        <Truck size={22} color="#eab308" />
+                                        <h4>Sanitation & Waste</h4>
+                                        <p>Rapid clearing of illegal dumps & overflowing bins</p>
+                                    </div>
+                                    <div style={styles.dutyCard}>
+                                        <Clock size={22} color="#a855f7" />
+                                        <h4>72-Hour SLA Resolution</h4>
+                                        <p>Guaranteed prompt action tracked on public dashboards</p>
+                                    </div>
+                                    <div style={styles.dutyCard}>
+                                        <CheckCircle2 size={22} color="#10b981" />
+                                        <h4>Geospatial Verification</h4>
+                                        <p>Crowdsourced photo proof submitted by citizens</p>
+                                    </div>
+                                </div>
+
+                                <div style={styles.liveMetricsStrip}>
+                                    <div style={styles.metricItem}>
+                                        <span style={styles.metricVal}>15 Wards</span>
+                                        <span style={styles.metricLbl}>Active Coverage</span>
+                                    </div>
+                                    <div style={styles.metricDivider} />
+                                    <div style={styles.metricItem}>
+                                        <span style={styles.metricVal}>94.2%</span>
+                                        <span style={styles.metricLbl}>SLA Compliance</span>
+                                    </div>
+                                    <div style={styles.metricDivider} />
+                                    <div style={styles.metricItem}>
+                                        <span style={styles.metricVal}>24 mins</span>
+                                        <span style={styles.metricLbl}>Avg First Triage</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Inline Error Notice */}
-                {error && (
-                    <div style={{
-                        ...styles.errorBox,
-                        background: isAuthority ? 'rgba(239, 68, 68, 0.15)' : 'rgba(185, 28, 28, 0.12)',
-                        color: isAuthority ? '#fca5a5' : '#991b1b',
-                        borderColor: isAuthority ? 'rgba(239,68,68,0.3)' : 'rgba(185,28,28,0.25)'
-                    }}>
-                        <span>{error}</span>
-                    </div>
-                )}
-
-                {/* 1. SIGN IN FORM */}
-                {mode === 'signin' && (
-                    <form onSubmit={handleSignIn} style={styles.form}>
-                        {/* Identifier Input */}
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type="text"
-                                placeholder={isAuthority ? "officer@ghmc.gov.in" : "username@mail.com or Phone"}
-                                value={identifier}
-                                onChange={(e) => setIdentifier(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor
-                                }}
-                                required
-                                autoComplete="username"
-                            />
+                {/* ================= RIGHT SIDE: AUTHENTICATION FORM ================= */}
+                <div style={{ ...styles.rightPane, background: theme.rightBg }}>
+                    <div style={styles.formCard}>
+                        {/* Header */}
+                        <div style={styles.header}>
+                            <h1 style={{ ...styles.title, color: theme.titleColor }}>
+                                {mode === 'signup' 
+                                    ? (isAuthority ? 'Authority Register' : 'Register')
+                                    : (mode === 'otp' ? 'Phone OTP' : (isAuthority ? 'Officer Login' : 'Login'))
+                                }
+                            </h1>
+                            <p style={{ ...styles.subTitle, color: theme.subColor }}>
+                                {mode === 'signup' 
+                                    ? 'Create new account' 
+                                    : (mode === 'otp' 
+                                        ? 'Enter 10-digit mobile number' 
+                                        : (isAuthority 
+                                            ? 'Municipal Corporation & Departmental Triage' 
+                                            : 'Welcome back! Enter credentials to continue'
+                                          )
+                                      )
+                                }
+                            </p>
                         </div>
 
-                        {/* Password Input */}
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor,
-                                    paddingRight: '50px'
-                                }}
-                                required
-                                autoComplete="current-password"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                style={{
-                                    ...styles.inputEyeBtn,
-                                    color: isAuthority ? '#94a3b8' : '#2b5037'
-                                }}
-                                tabIndex={-1}
-                            >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
+                        {/* Inline Error Notice */}
+                        {error && (
+                            <div style={{
+                                ...styles.errorBox,
+                                background: isAuthority ? 'rgba(239, 68, 68, 0.15)' : 'rgba(185, 28, 28, 0.12)',
+                                color: isAuthority ? '#fca5a5' : '#991b1b',
+                                borderColor: isAuthority ? 'rgba(239,68,68,0.3)' : 'rgba(185,28,28,0.25)'
+                            }}>
+                                <span>{error}</span>
+                            </div>
+                        )}
 
-                        {/* Action Pill Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                ...styles.pillButton,
-                                background: theme.buttonBg,
-                                color: theme.buttonColor,
-                                boxShadow: theme.buttonShadow
-                            }}
-                        >
-                            {loading ? 'Authenticating...' : (isAuthority ? 'Access Authority Desk' : 'Login')}
-                        </button>
-
-                        {/* Remember me & Forgot password Row */}
-                        <div style={{ ...styles.helperRow, color: theme.subColor }}>
-                            <label style={styles.rememberMeLabel}>
-                                <div 
-                                    onClick={() => setRememberMe(!rememberMe)}
-                                    style={{
-                                        ...styles.checkboxCircle,
-                                        background: rememberMe ? (isAuthority ? '#2563eb' : '#264e32') : 'transparent',
-                                        borderColor: rememberMe ? (isAuthority ? '#2563eb' : '#264e32') : theme.subColor
-                                    }}
-                                >
-                                    {rememberMe && <Check size={11} color="#ffffff" strokeWidth={3} />}
-                                </div>
-                                <span onClick={() => setRememberMe(!rememberMe)}>Remember me</span>
-                            </label>
-
-                            <button
-                                type="button"
-                                onClick={() => toast('For demo accounts, the password is: password123', { icon: 'ℹ️' })}
-                                style={{ ...styles.forgotBtn, color: theme.subColor }}
-                            >
-                                Forgot password?
-                            </button>
-                        </div>
-                    </form>
-                )}
-
-                {/* 2. REGISTER / CREATE ACCOUNT FORM */}
-                {mode === 'signup' && (
-                    <form onSubmit={handleSignUp} style={styles.form}>
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type="text"
-                                placeholder="Full Name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor
-                                }}
-                                required
-                            />
-                        </div>
-
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type="text"
-                                placeholder="username@mail.com or 10-Digit Phone"
-                                value={identifier}
-                                onChange={(e) => setIdentifier(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor
-                                }}
-                                required
-                            />
-                        </div>
-
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type="text"
-                                placeholder="Ward / Residential Area (e.g. Ward 12)"
-                                value={ward}
-                                onChange={(e) => setWard(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor
-                                }}
-                            />
-                        </div>
-
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Password (min 6 characters)"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor,
-                                    paddingRight: '50px'
-                                }}
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                style={{
-                                    ...styles.inputEyeBtn,
-                                    color: isAuthority ? '#94a3b8' : '#2b5037'
-                                }}
-                                tabIndex={-1}
-                            >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                        </div>
-
-                        <div style={styles.inputWrapper}>
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Confirm Password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                style={{
-                                    ...styles.pillInput,
-                                    background: theme.inputBg,
-                                    border: theme.inputBorder,
-                                    color: theme.inputColor
-                                }}
-                                required
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                ...styles.pillButton,
-                                background: theme.buttonBg,
-                                color: theme.buttonColor,
-                                boxShadow: theme.buttonShadow
-                            }}
-                        >
-                            {loading ? 'Creating Account...' : 'Register'}
-                        </button>
-                    </form>
-                )}
-
-                {/* 3. PHONE OTP FALLBACK */}
-                {mode === 'otp' && (
-                    <div style={styles.form}>
-                        {!otpSent ? (
-                            <>
+                        {/* 1. SIGN IN FORM */}
+                        {mode === 'signin' && (
+                            <form onSubmit={handleSignIn} style={styles.form}>
                                 <div style={styles.inputWrapper}>
                                     <input
-                                        type="tel"
-                                        maxLength={10}
-                                        placeholder="10-digit mobile number"
-                                        value={otpPhone}
-                                        onChange={(e) => setOtpPhone(e.target.value)}
+                                        type="text"
+                                        placeholder={isAuthority ? "officer@ghmc.gov.in" : "username@mail.com"}
+                                        value={identifier}
+                                        onChange={(e) => setIdentifier(e.target.value)}
+                                        style={{
+                                            ...styles.pillInput,
+                                            background: theme.inputBg,
+                                            border: theme.inputBorder,
+                                            color: theme.inputColor
+                                        }}
+                                        required
+                                        autoComplete="username"
+                                    />
+                                </div>
+
+                                <div style={styles.inputWrapper}>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        style={{
+                                            ...styles.pillInput,
+                                            background: theme.inputBg,
+                                            border: theme.inputBorder,
+                                            color: theme.inputColor,
+                                            paddingRight: '50px'
+                                        }}
+                                        required
+                                        autoComplete="current-password"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={{
+                                            ...styles.inputEyeBtn,
+                                            color: isAuthority ? '#94a3b8' : '#2b5037'
+                                        }}
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    style={{
+                                        ...styles.pillButton,
+                                        background: theme.buttonBg,
+                                        color: theme.buttonColor,
+                                        boxShadow: theme.buttonShadow
+                                    }}
+                                >
+                                    {loading ? 'Authenticating...' : (isAuthority ? 'Access Authority Desk' : 'Login')}
+                                </button>
+
+                                <div style={{ ...styles.helperRow, color: theme.subColor }}>
+                                    <label style={styles.rememberMeLabel}>
+                                        <div 
+                                            onClick={() => setRememberMe(!rememberMe)}
+                                            style={{
+                                                ...styles.checkboxCircle,
+                                                background: rememberMe ? (isAuthority ? '#2563eb' : '#264e32') : 'transparent',
+                                                borderColor: rememberMe ? (isAuthority ? '#2563eb' : '#264e32') : theme.subColor
+                                            }}
+                                        >
+                                            {rememberMe && <Check size={11} color="#ffffff" strokeWidth={3} />}
+                                        </div>
+                                        <span onClick={() => setRememberMe(!rememberMe)}>Remember me</span>
+                                    </label>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => toast('For all demo accounts, the password is: password123', { icon: 'ℹ️' })}
+                                        style={{ ...styles.forgotBtn, color: theme.subColor }}
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* 2. REGISTER / CREATE ACCOUNT FORM */}
+                        {mode === 'signup' && (
+                            <form onSubmit={handleSignUp} style={styles.form}>
+                                <div style={styles.inputWrapper}>
+                                    <input
+                                        type="text"
+                                        placeholder="Full Name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        style={{
+                                            ...styles.pillInput,
+                                            background: theme.inputBg,
+                                            border: theme.inputBorder,
+                                            color: theme.inputColor
+                                        }}
+                                        required
+                                    />
+                                </div>
+
+                                <div style={styles.inputWrapper}>
+                                    <input
+                                        type="text"
+                                        placeholder="username@mail.com"
+                                        value={identifier}
+                                        onChange={(e) => setIdentifier(e.target.value)}
+                                        style={{
+                                            ...styles.pillInput,
+                                            background: theme.inputBg,
+                                            border: theme.inputBorder,
+                                            color: theme.inputColor
+                                        }}
+                                        required
+                                    />
+                                </div>
+
+                                <div style={styles.inputWrapper}>
+                                    <input
+                                        type="text"
+                                        placeholder="Ward / Residential Area (e.g. Ward 12, Gachibowli)"
+                                        value={ward}
+                                        onChange={(e) => setWard(e.target.value)}
                                         style={{
                                             ...styles.pillInput,
                                             background: theme.inputBg,
@@ -577,42 +564,53 @@ export default function Login() {
                                         }}
                                     />
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={handleSendOTP}
-                                    disabled={loading}
-                                    style={{
-                                        ...styles.pillButton,
-                                        background: theme.buttonBg,
-                                        color: theme.buttonColor,
-                                        boxShadow: theme.buttonShadow
-                                    }}
-                                >
-                                    {loading ? 'Sending Code...' : 'Send Verification OTP'}
-                                </button>
-                            </>
-                        ) : (
-                            <>
+
                                 <div style={styles.inputWrapper}>
                                     <input
-                                        type="number"
-                                        maxLength={6}
-                                        placeholder="6-digit OTP code"
-                                        value={otpCode}
-                                        onChange={(e) => setOtpCode(e.target.value)}
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Password (min 6 characters)"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         style={{
                                             ...styles.pillInput,
                                             background: theme.inputBg,
                                             border: theme.inputBorder,
                                             color: theme.inputColor,
-                                            textAlign: 'center',
-                                            letterSpacing: '4px'
+                                            paddingRight: '50px'
                                         }}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={{
+                                            ...styles.inputEyeBtn,
+                                            color: isAuthority ? '#94a3b8' : '#2b5037'
+                                        }}
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+
+                                <div style={styles.inputWrapper}>
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Confirm Password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        style={{
+                                            ...styles.pillInput,
+                                            background: theme.inputBg,
+                                            border: theme.inputBorder,
+                                            color: theme.inputColor
+                                        }}
+                                        required
                                     />
                                 </div>
+
                                 <button
-                                    type="button"
-                                    onClick={handleVerifyOTP}
+                                    type="submit"
                                     disabled={loading}
                                     style={{
                                         ...styles.pillButton,
@@ -621,145 +619,216 @@ export default function Login() {
                                         boxShadow: theme.buttonShadow
                                     }}
                                 >
-                                    {loading ? 'Verifying...' : 'Verify & Continue'}
+                                    {loading ? 'Creating Account...' : 'Register'}
                                 </button>
+                            </form>
+                        )}
+
+                        {/* 3. PHONE OTP FALLBACK */}
+                        {mode === 'otp' && (
+                            <div style={styles.form}>
+                                {!otpSent ? (
+                                    <>
+                                        <div style={styles.inputWrapper}>
+                                            <input
+                                                type="tel"
+                                                maxLength={10}
+                                                placeholder="10-digit mobile number"
+                                                value={otpPhone}
+                                                onChange={(e) => setOtpPhone(e.target.value)}
+                                                style={{
+                                                    ...styles.pillInput,
+                                                    background: theme.inputBg,
+                                                    border: theme.inputBorder,
+                                                    color: theme.inputColor
+                                                }}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleSendOTP}
+                                            disabled={loading}
+                                            style={{
+                                                ...styles.pillButton,
+                                                background: theme.buttonBg,
+                                                color: theme.buttonColor,
+                                                boxShadow: theme.buttonShadow
+                                            }}
+                                        >
+                                            {loading ? 'Sending Code...' : 'Send Verification OTP'}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div style={styles.inputWrapper}>
+                                            <input
+                                                type="number"
+                                                maxLength={6}
+                                                placeholder="6-digit OTP code"
+                                                value={otpCode}
+                                                onChange={(e) => setOtpCode(e.target.value)}
+                                                style={{
+                                                    ...styles.pillInput,
+                                                    background: theme.inputBg,
+                                                    border: theme.inputBorder,
+                                                    color: theme.inputColor,
+                                                    textAlign: 'center',
+                                                    letterSpacing: '4px'
+                                                }}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleVerifyOTP}
+                                            disabled={loading}
+                                            style={{
+                                                ...styles.pillButton,
+                                                background: theme.buttonBg,
+                                                color: theme.buttonColor,
+                                                boxShadow: theme.buttonShadow
+                                            }}
+                                        >
+                                            {loading ? 'Verifying...' : 'Verify & Continue'}
+                                        </button>
+                                    </>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => { setMode('signin'); setError(''); }}
+                                    style={{ ...styles.forgotBtn, textAlign: 'center', marginTop: '12px', color: theme.subColor }}
+                                >
+                                    ← Back to standard login
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Divider: "Or continue with" */}
+                        {mode !== 'otp' && (
+                            <>
+                                <div style={styles.dividerRow}>
+                                    <div style={{ ...styles.dividerLine, background: theme.dividerLine }} />
+                                    <span style={{ ...styles.dividerText, color: theme.dividerText }}>
+                                        Or continue with
+                                    </span>
+                                    <div style={{ ...styles.dividerLine, background: theme.dividerLine }} />
+                                </div>
+
+                                {/* Floating Social Circles (Matching Mockup) */}
+                                <div style={styles.socialCirclesContainer}>
+                                    {/* Circle 1: SMS / Phone OTP */}
+                                    <button
+                                        type="button"
+                                        title="Sign in with SMS OTP"
+                                        onClick={() => { setMode('otp'); setError(''); }}
+                                        style={{
+                                            ...styles.socialCircle,
+                                            background: theme.socialCardBg,
+                                            border: theme.socialCardBorder,
+                                            boxShadow: theme.socialCardShadow
+                                        }}
+                                    >
+                                        <Phone size={20} color={isAuthority ? '#38bdf8' : '#264e32'} />
+                                    </button>
+
+                                    {/* Circle 2: Google Sign-in */}
+                                    <button
+                                        type="button"
+                                        title="Continue with Google"
+                                        onClick={handleGoogleSignIn}
+                                        disabled={googleLoading || loading}
+                                        style={{
+                                            ...styles.socialCircle,
+                                            background: theme.socialCardBg,
+                                            border: theme.socialCardBorder,
+                                            boxShadow: theme.socialCardShadow,
+                                            transform: 'scale(1.06)'
+                                        }}
+                                    >
+                                        <GoogleIcon />
+                                    </button>
+
+                                    {/* Circle 3: Demo Fast-Track */}
+                                    <button
+                                        type="button"
+                                        title="Quick Demo Accounts"
+                                        onClick={() => setShowDemoModal(!showDemoModal)}
+                                        style={{
+                                            ...styles.socialCircle,
+                                            background: theme.socialCardBg,
+                                            border: theme.socialCardBorder,
+                                            boxShadow: theme.socialCardShadow
+                                        }}
+                                    >
+                                        <KeyRound size={20} color={isAuthority ? '#38bdf8' : '#264e32'} />
+                                    </button>
+                                </div>
                             </>
                         )}
-                        <button
-                            type="button"
-                            onClick={() => { setMode('signin'); setError(''); }}
-                            style={{ ...styles.forgotBtn, textAlign: 'center', marginTop: '12px', color: theme.subColor }}
-                        >
-                            ← Back to standard login
-                        </button>
-                    </div>
-                )}
 
-                {/* Divider: "Or continue with" */}
-                {mode !== 'otp' && (
-                    <>
-                        <div style={styles.dividerRow}>
-                            <div style={{ ...styles.dividerLine, background: theme.dividerLine }} />
-                            <span style={{ ...styles.dividerText, color: theme.dividerText }}>
-                                Or continue with
-                            </span>
-                            <div style={{ ...styles.dividerLine, background: theme.dividerLine }} />
-                        </div>
+                        {/* Demo Fast-Track Drawer */}
+                        {showDemoModal && (
+                            <div style={{
+                                ...styles.demoDropdown,
+                                background: isAuthority ? '#1e293b' : '#ffffff',
+                                borderColor: isAuthority ? 'rgba(255,255,255,0.1)' : 'rgba(44,89,54,0.15)',
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
+                            }}>
+                                <div style={{ fontSize: '0.82rem', fontWeight: '700', marginBottom: '8px', color: theme.titleColor }}>
+                                    Select Demo Account (Password: password123):
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => fillDemo('vaibhav@streetvoice.org', 'password123', 'citizen')}
+                                        style={styles.demoOptionBtn}
+                                    >
+                                        <span>👤 Sai Vaibhav (Citizen)</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => fillDemo('officer@ghmc.gov.in', 'password123', 'authority')}
+                                        style={styles.demoOptionBtn}
+                                    >
+                                        <span>🏛️ GHMC Authority Officer</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => fillDemo('moderator@streetvoice.org', 'password123', 'authority')}
+                                        style={styles.demoOptionBtn}
+                                    >
+                                        <span>🛡️ Chief Moderator</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
-                        {/* Three Floating Social Circles (Matching Reference UI) */}
-                        <div style={styles.socialCirclesContainer}>
-                            {/* Circle 1: SMS / Phone OTP */}
-                            <button
-                                type="button"
-                                title="Sign in with SMS OTP"
-                                onClick={() => { setMode('otp'); setError(''); }}
-                                style={{
-                                    ...styles.socialCircle,
-                                    background: theme.socialCardBg,
-                                    border: theme.socialCardBorder,
-                                    boxShadow: theme.socialCardShadow
-                                }}
-                            >
-                                <Phone size={20} color={isAuthority ? '#38bdf8' : '#264e32'} />
-                            </button>
-
-                            {/* Circle 2: Google Sign-in */}
-                            <button
-                                type="button"
-                                title="Continue with Google"
-                                onClick={handleGoogleSignIn}
-                                disabled={googleLoading || loading}
-                                style={{
-                                    ...styles.socialCircle,
-                                    background: theme.socialCardBg,
-                                    border: theme.socialCardBorder,
-                                    boxShadow: theme.socialCardShadow,
-                                    transform: 'scale(1.06)'
-                                }}
-                            >
-                                <GoogleIcon />
-                            </button>
-
-                            {/* Circle 3: Demo Fast-Track */}
-                            <button
-                                type="button"
-                                title="Quick Demo Accounts"
-                                onClick={() => setShowDemoModal(!showDemoModal)}
-                                style={{
-                                    ...styles.socialCircle,
-                                    background: theme.socialCardBg,
-                                    border: theme.socialCardBorder,
-                                    boxShadow: theme.socialCardShadow
-                                }}
-                            >
-                                <KeyRound size={20} color={isAuthority ? '#38bdf8' : '#264e32'} />
-                            </button>
-                        </div>
-                    </>
-                )}
-
-                {/* Quick Demo Accounts Drawer if opened */}
-                {showDemoModal && (
-                    <div style={{
-                        ...styles.demoDropdown,
-                        background: isAuthority ? '#1e293b' : '#ffffff',
-                        borderColor: isAuthority ? 'rgba(255,255,255,0.1)' : 'rgba(44,89,54,0.15)',
-                        boxShadow: '0 8px 30px rgba(0,0,0,0.15)'
-                    }}>
-                        <div style={{ fontSize: '0.82rem', fontWeight: '700', marginBottom: '8px', color: theme.titleColor }}>
-                            Select a Demo Account (Password: password123):
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <button
-                                type="button"
-                                onClick={() => fillDemo('vaibhav@streetvoice.org', 'password123', 'citizen')}
-                                style={styles.demoOptionBtn}
-                            >
-                                <span>👤 Sai Vaibhav (Citizen Demo)</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => fillDemo('officer@ghmc.gov.in', 'password123', 'authority')}
-                                style={styles.demoOptionBtn}
-                            >
-                                <span>🏛️ GHMC Authority Officer</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => fillDemo('moderator@streetvoice.org', 'password123', 'authority')}
-                                style={styles.demoOptionBtn}
-                            >
-                                <span>🛡️ Chief Moderator</span>
-                            </button>
+                        {/* Bottom Switcher */}
+                        <div style={styles.bottomFooter}>
+                            {mode === 'signup' ? (
+                                <p style={{ ...styles.footerText, color: theme.subColor }}>
+                                    Already have an account?{' '}
+                                    <button
+                                        type="button"
+                                        onClick={() => { setMode('signin'); setError(''); }}
+                                        style={{ ...styles.footerLink, color: theme.titleColor }}
+                                    >
+                                        Sign in
+                                    </button>
+                                </p>
+                            ) : (
+                                <p style={{ ...styles.footerText, color: theme.subColor }}>
+                                    Don't have an account?{' '}
+                                    <button
+                                        type="button"
+                                        onClick={() => { setMode('signup'); setError(''); }}
+                                        style={{ ...styles.footerLink, color: theme.titleColor }}
+                                    >
+                                        Sign up
+                                    </button>
+                                </p>
+                            )}
                         </div>
                     </div>
-                )}
-
-                {/* Bottom Footer Switcher: "Already have an account? Sign in" / "Don't have an account? Sign up" */}
-                <div style={styles.bottomFooter}>
-                    {mode === 'signup' ? (
-                        <p style={{ ...styles.footerText, color: theme.subColor }}>
-                            Already have an account?{' '}
-                            <button
-                                type="button"
-                                onClick={() => { setMode('signin'); setError(''); }}
-                                style={{ ...styles.footerLink, color: theme.titleColor }}
-                            >
-                                Sign in
-                            </button>
-                        </p>
-                    ) : (
-                        <p style={{ ...styles.footerText, color: theme.subColor }}>
-                            Don't have an account?{' '}
-                            <button
-                                type="button"
-                                onClick={() => { setMode('signup'); setError(''); }}
-                                style={{ ...styles.footerLink, color: theme.titleColor }}
-                            >
-                                Sign up
-                            </button>
-                        </p>
-                    )}
                 </div>
 
             </div>
@@ -768,58 +837,206 @@ export default function Login() {
 }
 
 const styles = {
-    page: {
+    splitPage: {
         minHeight: '100vh',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2.5rem 1.25rem',
-        boxSizing: 'border-box',
         position: 'relative',
+        boxSizing: 'border-box',
         fontFamily: "'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
-        transition: 'background 0.35s ease'
+        overflowX: 'hidden'
+    },
+    topBar: {
+        position: 'absolute',
+        top: '1rem',
+        left: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0 1.5rem',
+        zIndex: 20,
+        pointerEvents: 'none'
     },
     backBtn: {
-        position: 'absolute',
-        top: '1.25rem',
-        left: '1.25rem',
-        background: 'transparent',
-        border: 'none',
+        background: 'rgba(255, 255, 255, 0.65)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
         cursor: 'pointer',
         fontSize: '0.85rem',
         fontWeight: '600',
         display: 'flex',
         alignItems: 'center',
         gap: '0.4rem',
-        padding: '0.5rem 0.8rem',
+        padding: '0.55rem 0.95rem',
         borderRadius: '999px',
         transition: 'opacity 0.2s',
-        opacity: 0.85
+        pointerEvents: 'auto',
+        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)'
     },
-    topSwitcherContainer: {
+    portalPill: {
         display: 'flex',
-        background: 'rgba(0, 0, 0, 0.06)',
+        background: 'rgba(0, 0, 0, 0.1)',
         backdropFilter: 'blur(10px)',
         borderRadius: '9999px',
         padding: '4px',
         gap: '4px',
-        marginBottom: '2.5rem',
-        zIndex: 5
+        pointerEvents: 'auto'
     },
-    topSwitcherBtn: {
+    portalPillBtn: {
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        padding: '7px 16px',
+        padding: '7px 15px',
         borderRadius: '9999px',
         fontSize: '0.82rem',
         border: 'none',
         cursor: 'pointer',
         transition: 'all 0.25s ease'
     },
-    formContainer: {
+    splitWrapper: {
+        flex: 1,
+        width: '100%',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap'
+    },
+    // Left Pane
+    leftPane: {
+        flex: '1 1 50%',
+        minWidth: '340px',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '4rem 2rem 2rem',
+        boxSizing: 'border-box',
+        overflow: 'hidden'
+    },
+    posterWrapper: {
+        width: '100%',
+        maxWidth: '460px',
+        height: '100%',
+        maxHeight: '840px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '24px',
+        overflow: 'hidden',
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)'
+    },
+    posterImage: {
+        width: '100%',
+        height: '100%',
+        maxHeight: '840px',
+        objectFit: 'contain',
+        display: 'block'
+    },
+    // Authority Visual Pane
+    authorityVisualWrapper: {
+        width: '100%',
+        maxWidth: '520px',
+        padding: '2.5rem 2rem',
+        borderRadius: '28px',
+        background: 'rgba(15, 23, 42, 0.85)',
+        border: '1px solid rgba(56, 189, 248, 0.2)',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+        boxSizing: 'border-box',
+        textAlign: 'center'
+    },
+    authorityVisualContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+    },
+    authoritySealBadge: {
+        width: '72px',
+        height: '72px',
+        borderRadius: '50%',
+        background: 'rgba(56, 189, 248, 0.12)',
+        border: '1px solid rgba(56, 189, 248, 0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '1.25rem'
+    },
+    authorityHeroTitle: {
+        fontSize: '1.75rem',
+        fontWeight: '800',
+        color: '#ffffff',
+        letterSpacing: '-0.02em',
+        margin: '0 0 0.5rem',
+        lineHeight: 1.2
+    },
+    authorityHeroSubtitle: {
+        fontSize: '0.82rem',
+        fontWeight: '700',
+        color: '#38bdf8',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        margin: '0 0 2rem'
+    },
+    authorityDutyGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '12px',
+        width: '100%',
+        textAlign: 'left',
+        marginBottom: '2rem'
+    },
+    dutyCard: {
+        background: 'rgba(30, 41, 59, 0.6)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        padding: '1rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '6px'
+    },
+    liveMetricsStrip: {
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        background: 'rgba(30, 41, 59, 0.8)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '16px',
+        padding: '0.85rem'
+    },
+    metricItem: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
+    },
+    metricVal: {
+        fontSize: '1.15rem',
+        fontWeight: '800',
+        color: '#38bdf8'
+    },
+    metricLbl: {
+        fontSize: '0.72rem',
+        color: '#94a3b8',
+        textTransform: 'uppercase'
+    },
+    metricDivider: {
+        width: '1px',
+        height: '28px',
+        background: 'rgba(255, 255, 255, 0.1)'
+    },
+    // Right Pane (Form)
+    rightPane: {
+        flex: '1 1 50%',
+        minWidth: '340px',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '4rem 2rem 2.5rem',
+        boxSizing: 'border-box'
+    },
+    formCard: {
         width: '100%',
         maxWidth: '380px',
         display: 'flex',
@@ -828,7 +1045,7 @@ const styles = {
         textAlign: 'center'
     },
     header: {
-        marginBottom: '2.2rem',
+        marginBottom: '2rem',
         width: '100%'
     },
     title: {
