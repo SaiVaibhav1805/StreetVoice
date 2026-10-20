@@ -30,7 +30,25 @@ const server = http.createServer(app);
 
 // Enable CORS and other security middlewares first
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+
+const allowedOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map(url => url.trim())
+  .filter(Boolean);
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.length === 0) return true;
+  if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) return true;
+  if (origin.endsWith('.vercel.app')) return true;
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) return true;
+  return true;
+};
+
+app.use(cors({
+  origin: (origin, callback) => callback(null, isOriginAllowed(origin)),
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -38,8 +56,9 @@ app.use(express.urlencoded({ extended: true }));
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    origin: (origin, callback) => callback(null, true),
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 

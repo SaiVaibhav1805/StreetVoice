@@ -1,9 +1,20 @@
 import express from 'express';
-import { sendOTP, verifyAndLogin, updateProfile, getMe } from '../controllers/authController.js';
+import { 
+  register, 
+  login, 
+  googleAuth, 
+  sendOTP, 
+  verifyAndLogin, 
+  updateProfile, 
+  getMe 
+} from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
+router.post('/register', register);                 // POST /api/auth/register
+router.post('/login', login);                       // POST /api/auth/login
+router.post('/google', googleAuth);                 // POST /api/auth/google
 router.post('/send-otp', sendOTP);                 // POST /api/auth/send-otp
 router.post('/verify', verifyAndLogin);             // POST /api/auth/verify
 router.put('/profile', protect, updateProfile);     // PUT  /api/auth/profile

@@ -166,7 +166,7 @@ export default function Profile() {
                         </div>
 
                         <p style={styles.profileWard}>📍 {profile?.ward || 'No ward set'}</p>
-                        <p style={styles.profilePhone}>{profile?.phone}</p>
+                        <p style={styles.profilePhone}>{profile?.email || (profile?.phone ? `+91 ${profile.phone}` : 'No contact specified')}</p>
                         <button style={styles.editBtn} onClick={() => setEditing(true)}>
                             <Edit2 size={12} style={{ marginRight: 4 }} /> Edit Profile
                         </button>

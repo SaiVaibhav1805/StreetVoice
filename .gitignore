@@ -49,3 +49,11 @@ coverage
 # OS files
 .DS_Store
 Thumbs.db
+
+node_modules/
+client/node_modules/
+server/node_modules/
+client/.env
+server/.env
+dist/
+.DS_Store

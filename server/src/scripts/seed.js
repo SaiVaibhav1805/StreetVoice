@@ -7,6 +7,8 @@ import Comment from '../models/Comment.js';
 import Verification from '../models/Verification.js';
 import StatusUpdate from '../models/StatusUpdate.js';
 
+import bcrypt from 'bcryptjs';
+
 dotenv.config();
 
 // Set DNS servers to resolve MongoDB SRV Atlas records correctly
@@ -36,10 +38,13 @@ const seedDatabase = async () => {
 
     // 1. Create Users (Citizens & Authorities)
     console.log('Creating users...');
+    const defaultPassword = await bcrypt.hash('password123', 10);
     
     // Developer / Judge user
     const userVaibhav = await User.create({
       phone: '9876543210',
+      email: 'vaibhav@streetvoice.org',
+      password: defaultPassword,
       name: 'Sai Vaibhav',
       role: 'citizen',
       ward: 'Gachibowli',
@@ -51,6 +56,8 @@ const seedDatabase = async () => {
 
     const userRahul = await User.create({
       phone: '9000000001',
+      email: 'rahul@streetvoice.org',
+      password: defaultPassword,
       name: 'Rahul Kumar',
       role: 'citizen',
       ward: 'Madhapur',
@@ -62,6 +69,8 @@ const seedDatabase = async () => {
 
     const userPriya = await User.create({
       phone: '9000000002',
+      email: 'priya@streetvoice.org',
+      password: defaultPassword,
       name: 'Priya Sharma',
       role: 'citizen',
       ward: 'Kukatpally',
@@ -73,6 +82,8 @@ const seedDatabase = async () => {
 
     const userAnanya = await User.create({
       phone: '9000000003',
+      email: 'ananya@streetvoice.org',
+      password: defaultPassword,
       name: 'Ananya Reddy',
       role: 'citizen',
       ward: 'Jubilee Hills',
@@ -85,6 +96,8 @@ const seedDatabase = async () => {
     // Authorities
     const userOfficer = await User.create({
       phone: '8888888888',
+      email: 'officer@ghmc.gov.in',
+      password: defaultPassword,
       name: 'GHMC Authority Officer',
       role: 'authority',
       ward: 'Hyderabad Corp',
@@ -94,6 +107,8 @@ const seedDatabase = async () => {
 
     const userMod = await User.create({
       phone: '9999999999',
+      email: 'moderator@streetvoice.org',
+      password: defaultPassword,
       name: 'Chief Moderator',
       role: 'moderator',
       ward: 'Hyderabad Corp',
