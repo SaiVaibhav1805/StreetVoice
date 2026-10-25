@@ -153,7 +153,35 @@ sequenceDiagram
 
 ---
 
-## 🚀 Deployment Architecture (Google Cloud Run)
+## 🚀 Deployment (Vercel)
+
+StreetVoice is deployed on **Vercel** using a monorepo setup:
+
+- The **client** (`client/`) is a Vite React application that builds to static assets. Vercel detects the `vite.config.js` and runs `npm run build` to generate the `dist/` folder, which is served as a static site.
+- The **server** (`server/`) is deployed as **Serverless Functions**. Each file in `server/src` that exports a handler is automatically turned into a Vercel function (e.g., `api/*`). The Express app is adapted to work with Vercel's serverless runtime via the `vercel-node` builder.
+
+**Deploy steps**
+
+1. Install the Vercel CLI (if not already):
+   ```bash
+   npm i -g vercel
+   ```
+2. From the repository root, run:
+   ```bash
+   vercel login          # authenticate
+   vercel                # follow prompts (choose the existing project or create a new one)
+   ```
+   Vercel will detect both the client and server, install dependencies, build the React app, and deploy serverless functions.
+
+3. Environment variables:
+   - Add all variables from `server/.env` and `client/.env` in the Vercel dashboard under **Project Settings → Environment Variables**.
+   - Ensure `VITE_API_URL` points to the deployed server URL (e.g., `https://<project>.vercel.app/api`).
+
+4. After the deployment finishes, Vercel provides a preview URL and a production URL (`https://<project>.vercel.app`). The landing page redesign, including the new image assets under `client/public/poster-sections/`, is served automatically.
+
+**Note:** No Dockerfile or Cloud Run configuration is needed; Vercel handles the build and hosting automatically.
+
+---
 
 StreetVoice is configured for a **unified single-container deployment** on Google Cloud Run. This architecture compiles the Vite React frontend during build time and copies the compiled assets directly into the Express backend's public directories.
 
