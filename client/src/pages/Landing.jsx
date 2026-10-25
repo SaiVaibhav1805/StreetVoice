@@ -1,629 +1,655 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-    MapPin, ChevronRight, Search, Sparkles, Archive, Trash2,
-    Paperclip, MoreHorizontal, Reply, Forward, Menu, X, ArrowRight
+import { motion, useInView, AnimatePresence } from 'motion/react';
+import {
+    MapPin, Menu, X, ArrowRight, ThumbsUp, MessageCircle, CheckCircle2,
+    Trophy, Star, Leaf, Megaphone, Map,
+    BarChart3, Users, Wrench, Building2, Search
 } from 'lucide-react';
 
-// Custom SVG Brand Icons to avoid lucide-react export mismatches in older versions
-const InstagramIcon = ({ className = "w-5 h-5" }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+/* ─────────────────────── tiny helpers ─────────────────────── */
+const TwitterIcon = ({ className = 'w-5 h-5' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />
+    </svg>
+);
+const LinkedInIcon = ({ className = 'w-5 h-5' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+        <rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" />
+    </svg>
+);
+const InstagramIcon = ({ className = 'w-5 h-5' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+);
+const YoutubeIcon = ({ className = 'w-5 h-5' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.97C18.88 4 12 4 12 4s-6.88 0-8.59.45A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.97C5.12 20 12 20 12 20s6.88 0 8.59-.45a2.78 2.78 0 0 0 1.95-1.97A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+        <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" />
     </svg>
 );
 
-const TwitterIcon = ({ className = "w-5 h-5" }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-    </svg>
-);
+/* Scroll-triggered fade-up wrapper */
+function FadeUp({ children, delay = 0, className = '', style = {} }) {
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true, margin: '-60px' });
+    return (
+        <motion.div
+            ref={ref}
+            initial={{ opacity: 0, y: 36 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+            className={className}
+            style={style}
+        >
+            {children}
+        </motion.div>
+    );
+}
 
-const GlobeIcon = ({ className = "w-5 h-5" }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="2" y1="12" x2="22" y2="12"></line>
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-    </svg>
-);
-
-// Shared Primitives
-const AppleLogo = ({ className = "w-4 h-4" }) => (
-    <svg viewBox="0 0 384 512" fill="currentColor" className={className}>
-        <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-    </svg>
-);
-
-const LogoMark = ({ className = "w-8 h-8" }) => (
-    <svg viewBox="0 0 256 256" fill="currentColor" className={className}>
-        <path d="M 0 128 C 70.692 128 128 185.308 128 256 L 64 256 C 64 220.654 35.346 192 0 192 Z M 256 192 C 220.654 192 192 220.654 192 256 L 128 256 C 128 185.308 185.308 128 256 128 Z M 128 0 C 128 70.692 70.692 128 0 128 L 0 64 C 35.346 64 64 35.346 64 0 Z M 192 0 C 192 35.346 220.654 64 256 64 L 256 128 C 185.308 128 128 70.692 128 0 Z" />
-    </svg>
-);
-
-const AppleButton = ({ label = "Continue to StreetVoice", full = false, onClick }) => (
-    <button 
-        onClick={onClick}
-        className={`group inline-flex items-center justify-center gap-2 rounded-full bg-white text-black font-semibold text-sm px-5 py-3 transition-all hover:bg-white/90 active:scale-[0.98] cursor-pointer ${full ? 'w-full' : ''}`}
-    >
-        <AppleLogo className="w-4 h-4 text-black" />
-        <span>{label}</span>
-        <ChevronRight size={16} className="transition-transform group-hover:translate-x-[2px]" />
-    </button>
-);
-
-const SectionEyebrow = ({ label, tag }) => (
-    <div className="flex items-center gap-3">
-        <span className="w-1.5 h-1.5 rounded-full bg-white" />
-        <span className="text-white/60 text-xs font-semibold uppercase tracking-widest">{label}</span>
-        {tag && (
-            <span className="px-2.5 py-0.5 rounded-full border border-white/10 text-white/50 text-[10px] uppercase font-bold tracking-wider">
-                {tag}
-            </span>
-        )}
-    </div>
-);
-
+/* ─────────────────────── main component ─────────────────────── */
 export default function Landing() {
     const navigate = useNavigate();
     const { user, loading } = useAuth();
-    const [email, setEmail] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    
-    // Refs for scrolling to sections
-    const aboutRef = useRef(null);
-    const triageRef = useRef(null);
-    const testimonialsRef = useRef(null);
-    const contactRef = useRef(null);
+    const [scrolled, setScrolled] = useState(false);
 
+    const howItWorksRef = useRef(null);
+    const issuesRef = useRef(null);
+    const gamifyRef = useRef(null);
+    const ctaRef = useRef(null);
+
+    /* redirect logged-in users */
     useEffect(() => {
         if (!loading && user) {
-            if (user.role === 'authority' || user.role === 'moderator') {
-                navigate('/authority', { replace: true });
-            } else {
-                navigate('/home', { replace: true });
-            }
+            navigate(
+                user.role === 'authority' || user.role === 'moderator'
+                    ? '/authority' : '/home',
+                { replace: true }
+            );
         }
     }, [user, loading, navigate]);
 
-    const handleEmailSubmit = (e) => {
-        e.preventDefault();
-        navigate(`/login?portal=citizen${email ? `&email=${encodeURIComponent(email)}` : ''}`);
-    };
+    /* sticky nav shadow on scroll */
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 30);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-    const scrollToSection = (ref) => {
+    const scrollTo = (ref) => {
         ref.current?.scrollIntoView({ behavior: 'smooth' });
+        setMobileMenuOpen(false);
     };
 
-    const gradientStyle = {
-        backgroundImage: 'linear-gradient(to right, #091020 0%, #0B2551 12.5%, #A4F4FD 32.5%, #00d2ff 50%, #0B2551 67.5%, #091020 87.5%, #091020 100%)',
-        backgroundSize: '200% auto',
-        WebkitBackgroundClip: 'text',
-        backgroundClip: 'text',
-        color: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        filter: 'url(#c3-noise)',
-    };
-
-    const navItems = [
-        { label: 'About Us', ref: aboutRef },
-        { label: 'Triage', ref: triageRef },
-        { label: 'Testimonials', ref: testimonialsRef },
-        { label: 'Contact', ref: contactRef }
+    const navLinks = [
+        { label: 'Home', onClick: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
+        { label: 'Explore Issues', onClick: () => scrollTo(issuesRef) },
+        { label: 'Leaderboard', onClick: () => scrollTo(gamifyRef) },
+        { label: 'About', onClick: () => scrollTo(howItWorksRef) },
+        { label: 'For Authorities', onClick: () => navigate('/login?portal=authority') },
     ];
 
+    const stats = [
+        { value: '10K+', label: 'Issues Reported' },
+        { value: '7K+', label: 'Issues Resolved' },
+        { value: '15K+', label: 'Active Citizens' },
+        { value: '60+', label: 'Cities & Towns' },
+    ];
+
+    const steps = [
+        { num: '1', emoji: '📱', title: 'Report', desc: 'Snap a photo and let AI identify the issue, category and severity.' },
+        { num: '2', emoji: '📍', title: 'Verify', desc: 'People nearby can verify the issue within 200 meters to prevent fake reports.' },
+        { num: '3', emoji: '📋', title: 'Resolve', desc: 'Municipal authorities track and resolve issues with full transparency.' },
+    ];
+
+    const issueCards = [
+        { severity: 'High', severityColor: '#D32F2F', title: 'Pothole on Main Road', location: 'Banjara Hills, Hyderabad', time: '2 hours ago', likes: 24, comments: 8, status: 'Verified', statusColor: '#2e7d32' },
+        { severity: 'Medium', severityColor: '#E65100', title: 'Garbage Overflow', location: 'Kondapur, Hyderabad', time: '5 hours ago', likes: 17, comments: 4, status: 'Verified', statusColor: '#2e7d32' },
+        { severity: 'Low', severityColor: '#1565C0', title: 'Broken Streetlight', location: 'Gachibowli, Hyderabad', time: '1 day ago', likes: 31, comments: 6, status: 'In Progress', statusColor: '#E65100' },
+    ];
+
+    const badges = [
+        { icon: <Star size={20} />, label: 'Reporter', xp: '100 XP', color: '#FFB300' },
+        { icon: <CheckCircle2 size={20} />, label: 'Verifier', xp: '250 XP', color: '#2e7d32' },
+        { icon: <Trophy size={20} />, label: 'Community Champion', xp: '500 XP', color: '#E65100' },
+        { icon: <Leaf size={20} />, label: 'Clean City Hero', xp: '1000 XP', color: '#2e7d32' },
+    ];
+
+    const contributors = [
+        { name: 'Aarav Mehta', xp: '2,450 XP', rank: 1 },
+        { name: 'Priya Sharma', xp: '2,120 XP', rank: 2 },
+        { name: 'Rohan Verma', xp: '1,980 XP', rank: 3 },
+        { name: 'Sneha Iyer', xp: '1,750 XP', rank: 4 },
+        { name: 'Aditya Rao', xp: '1,520 XP', rank: 5 },
+    ];
+
+    const authorityFeatures = [
+        'Real-time ticket management',
+        'SLA monitoring & escalation',
+        'Predictive maintenance insights',
+        'Transparent citizen engagement',
+    ];
+
+    const C = {
+        bg: '#f5f0e8',
+        ink: '#1a1a1a',
+        red: '#C62828',
+        border: '#1a1a1a',
+        muted: '#888',
+        subtle: '#555',
+    };
+
     return (
-        <div className="relative min-h-screen overflow-x-hidden bg-[#0c0c0c] text-white selection:bg-brand/30">
-            {/* Global background video (fixed behind everything) */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                <video 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline
-                    className="w-full h-full object-cover pointer-events-none opacity-40"
-                    src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4" 
-                />
-            </div>
+        <div style={{ background: C.bg, color: C.ink, fontFamily: "'Inter', system-ui, sans-serif", overflowX: 'hidden', minHeight: '100vh' }}>
+            <style>{`
+                .sv-btn-red {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    background: ${C.red}; color: #fff; font-weight: 700;
+                    font-size: 0.9rem; padding: 12px 22px; border-radius: 6px;
+                    border: none; cursor: pointer;
+                    transition: background 0.18s, transform 0.14s;
+                    white-space: nowrap;
+                }
+                .sv-btn-red:hover { background: #B71C1C; transform: translateY(-1px); }
+                .sv-btn-outline-dark {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    background: transparent; color: ${C.ink}; font-weight: 600;
+                    font-size: 0.9rem; padding: 11px 20px; border-radius: 6px;
+                    border: 2px solid ${C.ink}; cursor: pointer;
+                    transition: background 0.18s, transform 0.14s;
+                    white-space: nowrap;
+                }
+                .sv-btn-outline-dark:hover { background: rgba(0,0,0,0.06); transform: translateY(-1px); }
+                .sv-issue-card {
+                    background: #fff; border-radius: 10px; overflow: hidden;
+                    border: 2px solid ${C.border};
+                    box-shadow: 3px 3px 0 ${C.border};
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                .sv-issue-card:hover { transform: translateY(-3px) translateX(-1px); box-shadow: 5px 5px 0 ${C.border}; }
+                .sv-nav-link {
+                    background: none; border: none; cursor: pointer;
+                    font-weight: 600; font-size: 0.85rem; color: ${C.ink};
+                    padding: 4px 0; transition: color 0.15s;
+                }
+                .sv-nav-link:hover { color: ${C.red}; }
+                .sv-footer-link {
+                    font-size: 0.85rem; color: ${C.subtle}; margin-bottom: 8px;
+                    cursor: pointer; transition: color 0.15s; display: block;
+                }
+                .sv-footer-link:hover { color: ${C.red}; }
+                .sv-social-icon { cursor: pointer; color: ${C.ink}; transition: color 0.15s; }
+                .sv-social-icon:hover { color: ${C.red}; }
+                @media (max-width: 768px) {
+                    .sv-desktop-nav, .sv-desktop-ctas { display: none !important; }
+                    .sv-mobile-btn { display: flex !important; }
+                    .sv-hero-art { display: none !important; }
+                    .sv-hero-left { max-width: 100% !important; }
+                    .sv-stats-row { flex-wrap: wrap; gap: 16px 28px !important; }
+                    .sv-how-steps { flex-direction: column !important; gap: 24px !important; }
+                    .sv-how-step-item { border-right: none !important; padding-right: 0 !important; margin-right: 0 !important; border-bottom: 2px solid ${C.border}; padding-bottom: 24px; }
+                    .sv-how-step-item:last-child { border-bottom: none; padding-bottom: 0; }
+                    .sv-issues-row { flex-direction: column !important; }
+                    .sv-issues-grid { grid-template-columns: 1fr !important; }
+                    .sv-real-impact { width: 100% !important; }
+                    .sv-tri-col { flex-direction: column !important; gap: 32px !important; }
+                    .sv-tri-col-item { border-right: none !important; padding-right: 0 !important; margin-right: 0 !important; border-bottom: 2px solid ${C.border}; padding-bottom: 32px !important; }
+                    .sv-tri-col-item:last-child { border-bottom: none; padding-bottom: 0 !important; }
+                    .sv-cta-row { flex-direction: column !important; }
+                    .sv-footer-grid { flex-direction: column; gap: 32px !important; }
+                }
+            `}</style>
 
-            {/* Hidden-on-mobile fixed vertical guide lines at 36rem edges */}
-            <div className="hidden md:block pointer-events-none fixed inset-y-0 left-1/2 -translate-x-[calc(50%+36rem)] w-px bg-white/10 z-[5]" />
-            <div className="hidden md:block pointer-events-none fixed inset-y-0 left-1/2 translate-x-[calc(-50%+36rem)] w-px bg-white/10 z-[5]" />
-
-            {/* Root SVG Filter for grainy multiplier */}
-            <svg className="absolute w-0 h-0 pointer-events-none">
-                <defs>
-                    <filter id="c3-noise">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
-                        <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0" />
-                        <feComposite in2="SourceGraphic" operator="in" result="noise" />
-                        <feBlend in="SourceGraphic" in2="noise" mode="multiply" />
-                    </filter>
-                </defs>
-            </svg>
-
-            {/* SECTION 1 — NAVBAR */}
-            <motion.header 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-                className="relative z-50 max-w-6xl mx-auto px-6 pt-6"
+            {/* ════════════════════════ NAVBAR ════════════════════════ */}
+            <motion.header
+                initial={{ y: -60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                style={{
+                    position: 'sticky', top: 0, zIndex: 1000,
+                    background: scrolled ? 'rgba(245,240,232,0.96)' : C.bg,
+                    borderBottom: `2px solid ${C.border}`,
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: scrolled ? '0 2px 16px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'background 0.3s, box-shadow 0.3s',
+                }}
             >
-                <div className="liquid-glass rounded-full px-6 py-3 flex items-center justify-between">
-                    {/* Left: LogoMark only */}
-                    <div 
-                        className="flex items-center cursor-pointer text-white hover:text-brand transition-colors"
-                        onClick={() => navigate('/')}
-                    >
-                        <LogoMark className="w-8 h-8" />
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {/* Logo */}
+                    <div onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ fontWeight: 900, fontSize: '1.2rem', letterSpacing: '-0.5px', lineHeight: 1 }}>
+                            Street<span style={{ color: C.red }}>Voice</span><span style={{ color: C.red }}> 📣</span>
+                        </div>
+                        <div style={{ fontSize: '0.58rem', color: C.muted, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                            Cleaner Cities · Stronger Communities
+                        </div>
                     </div>
 
-                    {/* Center: Relevant links */}
-                    <nav className="hidden md:flex gap-8">
-                        {navItems.map((item, i) => (
-                            <motion.button
-                                key={item.label}
-                                onClick={() => scrollToSection(item.ref)}
-                                initial={{ opacity: 0, y: -8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4, delay: 0.1 + i * 0.05, ease: "easeOut" }}
-                                className="text-white/70 text-sm font-semibold hover:text-white transition-colors cursor-pointer bg-none border-none"
-                            >
-                                {item.label}
-                            </motion.button>
+                    {/* Desktop nav */}
+                    <nav className="sv-desktop-nav" style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+                        {navLinks.map(l => (
+                            <button key={l.label} className="sv-nav-link" onClick={l.onClick}>{l.label}</button>
                         ))}
                     </nav>
 
-                    {/* Right: AppleButton / Mobile trigger */}
-                    <div className="hidden md:block">
-                        <AppleButton label="Continue to StreetVoice" onClick={() => navigate('/login?portal=citizen')} />
-                    </div>
-
-                    <div className="md:hidden">
-                        <button 
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white"
-                        >
-                            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                    {/* Desktop actions */}
+                    <div className="sv-desktop-ctas" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <Search size={17} style={{ cursor: 'pointer', color: C.ink }} />
+                        <button
+                            onClick={() => navigate('/login?portal=citizen')}
+                            style={{ background: 'none', border: `2px solid ${C.ink}`, borderRadius: 6, padding: '7px 16px', fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer', color: C.ink }}
+                        >Login</button>
+                        <button className="sv-btn-red" onClick={() => navigate('/login?portal=citizen')} style={{ padding: '8px 16px', borderRadius: 6, fontSize: '0.85rem' }}>
+                            Get Started
                         </button>
                     </div>
+
+                    {/* Mobile hamburger */}
+                    <button
+                        className="sv-mobile-btn"
+                        onClick={() => setMobileMenuOpen(v => !v)}
+                        style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 4, alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
                 </div>
 
-                {/* Mobile menu dropdown */}
+                {/* Mobile drawer */}
                 <AnimatePresence>
                     {mobileMenuOpen && (
-                        <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="md:hidden mt-3 liquid-glass rounded-2xl p-6 flex flex-col gap-4 relative z-40"
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            style={{ overflow: 'hidden', borderTop: `2px solid ${C.border}`, background: C.bg }}
                         >
-                            {navItems.map((item) => (
-                                <button 
-                                    key={item.label}
-                                    onClick={() => { setMobileMenuOpen(false); scrollToSection(item.ref); }}
-                                    className="text-white/80 hover:text-white text-base font-semibold text-left bg-none border-none cursor-pointer"
-                                >
-                                    {item.label}
-                                </button>
-                            ))}
-                            <div className="h-px bg-white/10 my-2" />
-                            <AppleButton label="Continue to StreetVoice" full onClick={() => navigate('/login?portal=citizen')} />
+                            <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                {navLinks.map(l => (
+                                    <button key={l.label} onClick={l.onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', color: C.ink, textAlign: 'left', padding: '4px 0' }}>{l.label}</button>
+                                ))}
+                                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                                    <button onClick={() => navigate('/login?portal=citizen')} style={{ flex: 1, background: 'none', border: `2px solid ${C.ink}`, borderRadius: 6, padding: '10px', fontWeight: 700, cursor: 'pointer', color: C.ink }}>Login</button>
+                                    <button className="sv-btn-red" onClick={() => navigate('/login?portal=citizen')} style={{ flex: 1, justifyContent: 'center', borderRadius: 6 }}>Get Started</button>
+                                </div>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </motion.header>
 
-            {/* SECTION 2 — HERO */}
-            <section ref={aboutRef} className="relative z-10 max-w-4xl mx-auto pt-20 md:pt-36 pb-20 text-center flex flex-col items-center px-6">
-                <motion.h1 
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-5xl md:text-8xl font-extrabold tracking-tight leading-[0.9] text-white"
-                >
-                    Your street.<br />
-                    <span className="animate-shiny" style={gradientStyle}>Revitalized</span>
-                </motion.h1>
-
-                <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
-                    className="mt-8 text-white/60 max-w-md text-base md:text-lg leading-[1.6]"
-                >
-                    StreetVoice is the premier civic platform for the current era. 
-                    It leverages powerful AI to organize, prioritize, and resolve 
-                    community issues into total clarity.
-                </motion.p>
-
-                <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7, duration: 0.6 }}
-                    className="mt-8 flex flex-col items-center gap-3"
-                >
-                    <AppleButton label="Continue to StreetVoice" onClick={() => navigate('/login?portal=citizen')} />
-                    <span className="text-xs text-white/40 font-semibold tracking-wide">
-                        Free access for all citizens and ward committees
-                    </span>
-                </motion.div>
-            </section>
-
-            {/* SECTION 3 — macOS MENU BAR STRIP */}
-            <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9, duration: 0.6 }}
-                className="relative z-20 w-full h-10 bg-black/40 backdrop-blur-md border-t border-b border-white/10"
-            >
-                <div className="max-w-6xl mx-auto px-6 h-full flex items-center justify-between text-xs font-semibold tracking-wide">
-                    <div className="flex items-center gap-5">
-                        <AppleLogo className="w-3.5 h-3.5 text-white" />
-                        <span className="bold text-white font-extrabold">StreetVoice</span>
-                        {['File', 'Edit', 'View', 'Go', 'Window', 'Help'].map((item, idx) => (
-                            <span 
-                                key={item} 
-                                className={`text-white/60 hover:text-white cursor-pointer ${
-                                    idx > 2 ? (idx > 3 ? 'hidden md:inline' : 'hidden sm:inline') : 'inline'
-                                }`}
-                            >
-                                {item}
-                            </span>
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-3 text-white/60">
-                        <Search size={13} className="text-white" />
-                        <span>Wed May 6 1:09 PM</span>
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* SECTION 4 — INBOX MOCKUP (Civic Dash Mockup with Simplified Sidebar) */}
-            <section className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24">
-                <motion.div 
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.1, duration: 0.8, ease: "easeOut" }}
-                    className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#0e1014]/90 backdrop-blur-2xl shadow-2xl"
-                >
-                    {/* Window Title Bar */}
-                    <div className="bg-black/30 px-4 py-3 flex items-center border-b border-white/5 relative">
-                        <div className="flex items-center gap-1.5 absolute left-4">
-                            <span className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-                            <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
-                            <span className="w-3 h-3 rounded-full bg-[#28c840]" />
-                        </div>
-                        <span className="mx-auto text-xs text-white/50 font-semibold tracking-wider">
-                            StreetVoice — Civic Workspace
-                        </span>
-                    </div>
-
-                    {/* App Window Grid */}
-                    <div className="grid grid-cols-12 h-[520px] text-sm overflow-hidden">
-                        {/* Sidebar (col-span-3) — inbox/resolved/etc removed */}
-                        <div className="col-span-3 border-r border-white/5 bg-black/30 p-4 flex flex-col justify-between">
-                            <div className="flex flex-col gap-6">
-                                <button 
-                                    onClick={() => navigate('/report')}
-                                    className="w-full flex items-center justify-center gap-2 rounded-lg bg-white text-black text-xs font-bold px-3 py-2.5 hover:bg-white/90 active:scale-[0.97] transition-all cursor-pointer"
-                                >
-                                    <Sparkles size={14} className="text-black" />
-                                    <span>Report with StreetVoice</span>
-                                </button>
-                                
-                                <div className="flex flex-col gap-3 mt-4">
-                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-white/40">
-                                        Wards & Sectors
-                                    </span>
-                                    <div className="flex flex-col gap-2.5">
-                                        {[
-                                            { label: 'Ward 12', color: '#3D81E3' },
-                                            { label: 'National Highway', color: '#A4F4FD' },
-                                            { label: 'Central Park', color: '#f59e0b' },
-                                            { label: 'Water Board', color: '#10b981' },
-                                        ].map((label) => (
-                                            <div key={label.label} className="flex items-center gap-2 cursor-pointer text-white/60 hover:text-white transition-colors">
-                                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: label.color }} />
-                                                <span className="text-xs font-medium">{label.label}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Message list (col-span-4) */}
-                        <div className="col-span-4 border-r border-white/5 bg-black/10 flex flex-col">
-                            {/* Search Header */}
-                            <div className="p-3 border-b border-white/5 flex items-center gap-2 bg-black/20">
-                                <Search size={14} className="text-white/40" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search civic cases"
-                                    className="bg-transparent text-xs text-white placeholder:text-white/40 outline-none w-full"
-                                />
-                            </div>
-
-                            {/* Scrollable Feed */}
-                            <div className="flex-1 overflow-y-auto divide-y divide-white/5">
-                                {[
-                                    { name: "Sophia Chen", title: "Pothole on Lake Road", preview: "Dangerous pothole near the subway exit is expanding...", time: "9:41 AM", unread: true, active: true },
-                                    { name: "Sophia Chen", title: "Streetlight out near Metro", preview: "No light for 3 nights, causing safety concerns...", time: "8:12 AM", unread: true },
-                                    { name: "Figma", title: "Garbage overflow near school", preview: "Trash piling up near the primary school gate...", time: "Yesterday" },
-                                    { name: "Stripe", title: "Water leakage near Banjara Hills", preview: "Water leaking from main pipeline, flooding road...", time: "Yesterday" },
-                                    { name: "Vercel", title: "Open sewage drain in Gachibowli", preview: "Open drain posing hazard to pedestrians...", time: "Mon" },
-                                    { name: "GitHub", title: "Encroachment on footpath", preview: "Temporary structures blocking the walkway...", time: "Mon" },
-                                ].map((msg, i) => (
-                                    <div 
-                                        key={i}
-                                        className={`p-3.5 flex flex-col gap-1 cursor-pointer transition-colors ${
-                                            msg.active ? 'bg-white/5' : 'hover:bg-white/[0.02]'
-                                        }`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-1.5">
-                                                {msg.unread && <span className="w-1.5 h-1.5 rounded-full bg-brand" />}
-                                                <span className={`text-xs ${msg.unread ? 'font-bold text-white' : 'text-white/70'}`}>
-                                                    {msg.name}
-                                                </span>
-                                            </div>
-                                            <span className="text-[10px] text-white/40">{msg.time}</span>
-                                        </div>
-                                        <h4 className="text-xs font-semibold text-white truncate">{msg.title}</h4>
-                                        <p className="text-[11px] text-white/50 truncate">{msg.preview}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Reader (col-span-5) */}
-                        <div className="col-span-5 flex flex-col h-full bg-[#0d0e12]">
-                            {/* Reader Toolbar */}
-                            <div className="p-3 border-b border-white/5 flex items-center justify-between bg-black/20">
-                                <div className="flex items-center gap-2">
-                                    {[Reply, Forward, Archive, Trash2].map((Icon, idx) => (
-                                        <button key={idx} className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer">
-                                            <Icon size={14} />
-                                        </button>
-                                    ))}
-                                </div>
-                                <button className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 hover:text-white transition-colors">
-                                    <MoreHorizontal size={14} />
-                                </button>
-                            </div>
-
-                            {/* Reader Body */}
-                            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
-                                {/* Subject Header */}
-                                <div>
-                                    <h3 className="text-base font-bold text-white leading-tight">
-                                        Pothole on Lake Road
-                                    </h3>
-                                    <div className="flex items-center justify-between mt-3">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center font-bold text-xs text-white">
-                                                L
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-bold text-white">Sophia Chen</p>
-                                                <p className="text-[10px] text-white/55">to me · 9:41 AM</p>
-                                            </div>
-                                        </div>
-                                        <span className="px-2.5 py-0.5 rounded-full border border-[#00d2ff]/20 bg-[#00d2ff]/5 text-[#00d2ff] text-[10px] font-bold">
-                                            Ward 12
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Summary Card by AI */}
-                                <div className="rounded-xl border border-[#A4F4FD]/10 bg-[#A4F4FD]/5 p-4 flex gap-3">
-                                    <Sparkles size={16} className="text-[#A4F4FD] mt-0.5 flex-shrink-0" />
-                                    <div>
-                                        <h4 className="text-xs font-bold text-white">Summary by StreetVoice</h4>
-                                        <p className="text-[11px] text-white/70 mt-1 leading-relaxed">
-                                            Category: Pothole. Severity: Critical. Verification: 3 neighbor votes. 
-                                            Action required by GHMC Road Division.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Text Body */}
-                                <div className="text-xs text-white/80 space-y-4 leading-relaxed font-medium">
-                                    <p>Hi team,</p>
-                                    <p>
-                                        I am reporting a severe pothole at Lake Road, Banjara Hills. It has been 
-                                        getting larger over the last week and is causing major traffic blocks during 
-                                        peak hours.
-                                    </p>
-                                    <p>
-                                        Several motorcyclists have had close calls trying to avoid it at night. 
-                                        Please dispatch the ward engineer to inspect and fill this as soon as possible.
-                                    </p>
-                                    
-                                    {/* Attachment */}
-                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-[10px] font-semibold text-white/60 hover:text-white cursor-pointer transition-colors">
-                                        <Paperclip size={12} />
-                                        <span>photo-evidence.jpg</span>
-                                    </div>
-
-                                    <p className="text-white/55 mt-4 pt-4 border-t border-white/5">— Sophia Chen</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-            </section>
-
-            {/* SECTION 5 — FEATURE TRIAGE */}
-            <section ref={triageRef} className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28">
-                <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
-                    {/* Left Column */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7 }}
-                        className="flex flex-col items-start"
+            {/* ════════════════════════ HERO ════════════════════════ */}
+            <section style={{ background: C.bg, borderBottom: `3px solid ${C.border}`, overflow: 'hidden' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px 0', display: 'flex', gap: 0, alignItems: 'flex-end' }}>
+                    {/* Left: text + stats */}
+                    <motion.div
+                        className="sv-hero-left"
+                        initial={{ opacity: 0, x: -28 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ flex: '0 0 auto', maxWidth: 420, paddingBottom: 40, zIndex: 2 }}
                     >
-                        <SectionEyebrow label="Triage" tag="AI-native" />
-                        <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight leading-[1.05]">
-                            Clear the streets<br />in a single pass.
-                        </h2>
-                        <p className="mt-6 text-white/60 text-base leading-[1.6] max-w-md">
-                            StreetVoice reads every report, understands intent, and routes the noise 
-                            away from the signal. Focus on what moves your neighborhood forward — 
-                            the rest handles itself.
+                        <h1 style={{ fontWeight: 900, fontSize: 'clamp(2rem, 5.5vw, 3.4rem)', lineHeight: 1.0, letterSpacing: '-1.5px', margin: '0 0 18px', textTransform: 'uppercase', color: C.ink }}>
+                            Your Streets.<br />
+                            Your Voice.<br />
+                            <span style={{ color: C.red }}>Your Impact.</span>
+                        </h1>
+                        <p style={{ fontSize: '0.9rem', color: C.subtle, lineHeight: 1.65, margin: '0 0 24px', maxWidth: 340 }}>
+                            Report civic issues. Verify with your community. Track real action. Together, we build cleaner, safer and better neighborhoods.
                         </p>
-                        {/* Chips Row */}
-                        <div className="flex flex-wrap gap-2.5 mt-8 max-w-md">
-                            {["Auto-categorize", "Escalate to authorities", "Silent notifications", "One-tap verifications"].map((chip) => (
-                                <span 
-                                    key={chip}
-                                    className="text-xs text-white/70 px-3.5 py-1.5 rounded-full border border-white/10 bg-white/[0.03] font-semibold hover:border-white/20 transition-all"
-                                >
-                                    {chip}
-                                </span>
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 36 }}>
+                            <button className="sv-btn-red" onClick={() => navigate('/login?portal=citizen')}>
+                                <Megaphone size={16} /> Report an Issue
+                            </button>
+                            <button className="sv-btn-outline-dark" onClick={() => navigate('/login?portal=citizen')}>
+                                <Map size={16} /> Explore Map
+                            </button>
+                        </div>
+                        <div className="sv-stats-row" style={{ display: 'flex', gap: 28 }}>
+                            {stats.map(s => (
+                                <div key={s.label}>
+                                    <div style={{ fontWeight: 900, fontSize: '1.5rem', lineHeight: 1, color: C.ink }}>{s.value}</div>
+                                    <div style={{ fontSize: '0.7rem', color: C.muted, marginTop: 2 }}>{s.label}</div>
+                                </div>
                             ))}
                         </div>
                     </motion.div>
 
-                    {/* Right Column */}
-                    <div className="liquid-glass rounded-2xl p-5 w-full flex flex-col gap-4 border border-white/10">
-                        <span className="text-[11px] font-extrabold uppercase tracking-widest text-white/40">
-                            Today · 42 issues triaged
-                        </span>
-                        
-                        {[
-                            { title: "Priority (4)", color: "#ffffff", items: ["Sophia Chen — Water Main Break", "David Lim — Broken Traffic Light"] },
-                            { title: "Verify (7)", color: "#e5e5e5", items: ["Marcus — Pothole", "Figma — Garbage Pile"] },
-                            { title: "Updates (18)", color: "#a3a3a3", items: ["GHMC — Dispatch Ready", "Water Board — Pipeline Merged"] },
-                            { title: "Resolved (13)", color: "#525252", items: ["Streetlight fixed · Footpath cleared · Drain covered"] },
-                        ].map((category, idx) => (
-                            <div 
-                                key={idx}
-                                className="liquid-glass rounded-xl p-4 flex flex-col gap-2 border border-white/5 bg-white/[0.01]"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }} />
-                                    <span className="text-xs font-bold" style={{ color: category.color }}>{category.title}</span>
-                                </div>
-                                <div className="flex flex-col gap-1.5 pl-4">
-                                    {category.items.map((item, i) => (
-                                        <p key={i} className="text-xs text-white/70 font-semibold">{item}</p>
-                                    ))}
-                                </div>
+                    {/* Right: hero illustration */}
+                    <motion.div
+                        className="sv-hero-art"
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ flex: 1, alignSelf: 'flex-end', overflow: 'hidden', minWidth: 0, display: 'flex', justifyContent: 'flex-end' }}
+                    >
+                        <img
+                            src="/poster-sections/02-hero.jpg"
+                            alt="Citizens marching for a cleaner city"
+                            style={{ width: '100%', maxWidth: 700, height: 290, objectFit: 'cover', objectPosition: 'center top', display: 'block', borderRadius: '10px 10px 0 0' }}
+                        />
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* ════════════════════════ HOW IT WORKS ════════════════════════ */}
+            <section ref={howItWorksRef} style={{ background: C.bg, borderBottom: `3px solid ${C.border}`, padding: '48px 24px' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                    <FadeUp>
+                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 36, flexWrap: 'wrap' }}>
+                            <h2 style={{ fontWeight: 900, fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', letterSpacing: '-1px', textTransform: 'uppercase', margin: 0 }}>
+                                How It Works
+                            </h2>
+                            <div style={{ fontWeight: 800, fontSize: '0.8rem', textTransform: 'uppercase', color: C.red, textAlign: 'right', transform: 'rotate(2deg)', lineHeight: 1.3 }}>
+                                Simple Steps.<br />Real Change. ——
                             </div>
+                        </div>
+                    </FadeUp>
+                    <div className="sv-how-steps" style={{ display: 'flex', gap: 0 }}>
+                        {steps.map((step, i) => (
+                            <FadeUp key={step.title} delay={i * 0.1} style={{ flex: 1 }}>
+                                <div
+                                    className="sv-how-step-item"
+                                    style={{
+                                        display: 'flex', gap: 14, alignItems: 'flex-start',
+                                        paddingRight: i < steps.length - 1 ? 28 : 0,
+                                        marginRight: i < steps.length - 1 ? 0 : 0,
+                                        borderRight: i < steps.length - 1 ? `2px solid ${C.border}` : 'none',
+                                        marginRight: i < steps.length - 1 ? 28 : 0,
+                                    }}
+                                >
+                                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: C.red, color: '#fff', fontWeight: 900, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        {step.num}
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>{step.emoji}</div>
+                                        <h3 style={{ fontWeight: 800, fontSize: '1.1rem', margin: '0 0 8px' }}>{step.title}</h3>
+                                        <p style={{ fontSize: '0.83rem', color: C.subtle, lineHeight: 1.6, margin: 0 }}>{step.desc}</p>
+                                    </div>
+                                </div>
+                            </FadeUp>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* SECTION 6 — LOGO CLOUD */}
-            <section className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-20 text-center">
-                <p className="text-xs uppercase tracking-widest text-white/40 font-extrabold">
-                    Trusted by the world's most thoughtful municipalities
-                </p>
-                <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6 justify-center items-center">
-                    {['Hyderabad', 'Bengaluru', 'Mumbai', 'Chennai', 'Pune', 'Delhi', 'Kolkata', 'Kochi'].map((city, i) => (
-                        <motion.span
-                            key={city}
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: i * 0.05 }}
-                            className="text-sm font-semibold tracking-tight text-white/50 hover:text-white transition-colors cursor-pointer"
-                        >
-                            {city}
-                        </motion.span>
-                    ))}
-                </div>
-            </section>
-
-            {/* SECTION 7 — TESTIMONIALS */}
-            <section ref={testimonialsRef} className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 border-t border-white/10">
-                <div className="grid md:grid-cols-3 gap-6">
-                    {[
-                        {
-                            quote: "StreetVoice gave our ward leadership team four hours of their week back. It reads like civic engagement from the future.",
-                            name: "Parker Wilf",
-                            role: "Ward Officer",
-                            company: "MERCURY"
-                        },
-                        {
-                            quote: "The command palette alone has changed how we process citizen complaints. I can't imagine going back to paper forms.",
-                            name: "Andrew von Rosenbach",
-                            role: "Deputy Commissioner",
-                            company: "COHERE"
-                        },
-                        {
-                            quote: "Triage that actually understands context. Our team stopped dreading Monday morning mailbags.",
-                            name: "Mathies Christensen",
-                            role: "City Engineer",
-                            company: "LUNAR"
-                        }
-                    ].map((t, idx) => (
-                        <figure 
-                            key={idx}
-                            className="liquid-glass rounded-2xl p-6 border border-white/10 flex flex-col justify-between"
-                        >
-                            <blockquote className="text-sm text-white/80 leading-[1.6] font-medium">
-                                "{t.quote}"
-                            </blockquote>
-                            <figcaption className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-bold text-white">{t.name}</p>
-                                    <p className="text-xs text-white/50 mt-0.5">{t.role}</p>
+            {/* ════════════════════════ LIVE ISSUES ════════════════════════ */}
+            <section ref={issuesRef} style={{ background: C.bg, borderBottom: `3px solid ${C.border}`, padding: '48px 24px' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                    <div className="sv-issues-row" style={{ display: 'flex', gap: 28, alignItems: 'flex-start' }}>
+                        {/* Left: cards */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <FadeUp>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 10 }}>
+                                    <h2 style={{ fontWeight: 900, fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)', margin: 0, display: 'flex', alignItems: 'center', gap: 10, textTransform: 'uppercase' }}>
+                                        <span style={{ width: 11, height: 11, borderRadius: '50%', background: C.red, display: 'inline-block', boxShadow: `0 0 0 4px rgba(198,40,40,0.2)`, flexShrink: 0 }} />
+                                        Live Issues Around You
+                                    </h2>
+                                    <button onClick={() => navigate('/login?portal=citizen')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', color: C.ink, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'underline', padding: 0 }}>
+                                        See on Map <ArrowRight size={13} />
+                                    </button>
                                 </div>
-                                <span className="text-xs text-white font-extrabold tracking-wider uppercase">
-                                    {t.company}
-                                </span>
-                            </figcaption>
-                        </figure>
-                    ))}
+                            </FadeUp>
+                            <div className="sv-issues-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+                                {issueCards.map((card, i) => (
+                                    <FadeUp key={card.title} delay={i * 0.08}>
+                                        <div className="sv-issue-card">
+                                            <div style={{ position: 'relative', height: 100, overflow: 'hidden', background: '#e0d8ce' }}>
+                                                <img
+                                                    src="/poster-sections/04-live-issues.jpg"
+                                                    alt={card.title}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${i * 34}% 55%` }}
+                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                />
+                                                <span style={{ position: 'absolute', top: 7, left: 7, background: card.severityColor, color: '#fff', fontWeight: 800, fontSize: '0.65rem', padding: '3px 7px', borderRadius: 4, textTransform: 'uppercase' }}>
+                                                    {card.severity}
+                                                </span>
+                                            </div>
+                                            <div style={{ padding: '12px 13px' }}>
+                                                <h3 style={{ fontWeight: 700, fontSize: '0.85rem', margin: '0 0 4px' }}>{card.title}</h3>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', color: '#666', marginBottom: 2 }}>
+                                                    <MapPin size={10} style={{ flexShrink: 0 }} /> {card.location}
+                                                </div>
+                                                <div style={{ fontSize: '0.7rem', color: '#999', marginBottom: 11 }}>{card.time}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <div style={{ display: 'flex', gap: 10 }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.75rem', color: '#555' }}>
+                                                            <ThumbsUp size={11} /> {card.likes}
+                                                        </span>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.75rem', color: '#555' }}>
+                                                            <MessageCircle size={11} /> {card.comments}
+                                                        </span>
+                                                    </div>
+                                                    <span style={{ fontSize: '0.67rem', fontWeight: 700, padding: '2px 7px', borderRadius: 20, border: `1.5px solid ${card.statusColor}`, color: card.statusColor, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                                        {card.status === 'Verified' && <CheckCircle2 size={9} />}
+                                                        {card.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </FadeUp>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Right: Real Impact box */}
+                        <FadeUp delay={0.2}>
+                            <div className="sv-real-impact" style={{ width: 230, flexShrink: 0, border: `2.5px solid ${C.border}`, borderRadius: 12, padding: '18px', background: '#fff', boxShadow: `4px 4px 0 ${C.border}` }}>
+                                <div style={{ fontWeight: 900, fontSize: '1.3rem', textTransform: 'uppercase', lineHeight: 1.1, marginBottom: 18 }}>
+                                    Real People.<br />Real Impact.
+                                </div>
+                                {[
+                                    { Icon: BarChart3, val: '10K+', lbl: 'Issues Reported' },
+                                    { Icon: Wrench, val: '7K+', lbl: 'Issues Resolved' },
+                                    { Icon: Users, val: '15K+', lbl: 'Active Citizens' },
+                                    { Icon: Building2, val: '60+', lbl: 'Cities & Towns' },
+                                ].map(({ Icon, val, lbl }) => (
+                                    <div key={lbl} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 14 }}>
+                                        <div style={{ width: 34, height: 34, background: '#fef2f2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: C.red }}>
+                                            <Icon size={18} />
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 800, fontSize: '1.1rem', lineHeight: 1 }}>{val}</div>
+                                            <div style={{ fontSize: '0.68rem', color: '#666', marginTop: 2 }}>{lbl}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </FadeUp>
+                    </div>
                 </div>
             </section>
 
-            {/* SECTION 9 — FINAL CTA */}
-            <section ref={contactRef} className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-32">
-                <motion.div 
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8 }}
-                    className="liquid-glass relative overflow-hidden rounded-3xl px-8 py-16 md:py-24 text-center border border-white/10"
-                >
-                    {/* Radial Glow Overlay */}
-                    <div 
-                        className="absolute inset-0 pointer-events-none opacity-30"
-                        style={{
-                            background: "radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%)"
-                        }}
-                    />
+            {/* ════════════════════════ GAMIFY / CONTRIBUTORS / AUTHORITIES ════════════════════════ */}
+            <section ref={gamifyRef} style={{ background: C.bg, borderBottom: `3px solid ${C.border}`, padding: '48px 24px' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                    <div className="sv-tri-col" style={{ display: 'flex', gap: 0 }}>
 
-                    <h2 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.02] text-white">
-                        Close the tickets.<br />Open your city.
-                    </h2>
-                    
-                    <p className="mt-6 text-white/60 max-w-md mx-auto text-sm leading-[1.6]">
-                        Join thousands of builders, citizens, and ward officers who treat civic 
-                        action like a tool — not an obligation.
-                    </p>
+                        {/* Col 1: Gamify */}
+                        <FadeUp style={{ flex: 1 }}>
+                            <div className="sv-tri-col-item" style={{ paddingRight: 28, borderRight: `2px solid ${C.border}`, marginRight: 28, paddingBottom: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                                    <span style={{ fontSize: '1rem' }}>⭐</span>
+                                    <h3 style={{ fontWeight: 900, fontSize: '1.05rem', textTransform: 'uppercase', margin: 0, letterSpacing: '-0.2px' }}>Gamify Your Impact</h3>
+                                </div>
+                                <p style={{ fontSize: '0.8rem', color: C.subtle, lineHeight: 1.6, marginBottom: 18 }}>
+                                    Report, verify, and engage to earn XP, unlock badges and climb the leaderboard.
+                                </p>
+                                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 22 }}>
+                                    {badges.map(b => (
+                                        <div key={b.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, minWidth: 52 }}>
+                                            <div style={{ width: 46, height: 46, borderRadius: '50%', background: `${b.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${b.color}`, color: b.color }}>
+                                                {b.icon}
+                                            </div>
+                                            <span style={{ fontSize: '0.6rem', fontWeight: 700, textAlign: 'center', lineHeight: 1.2, color: C.ink }}>{b.label}</span>
+                                            <span style={{ fontSize: '0.58rem', color: C.muted }}>{b.xp}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => navigate('/login?portal=citizen')}
+                                    style={{ background: 'none', border: `2px solid ${C.red}`, borderRadius: 6, padding: '8px 16px', fontWeight: 700, fontSize: '0.8rem', color: C.red, cursor: 'pointer' }}
+                                >
+                                    View All Badges
+                                </button>
+                            </div>
+                        </FadeUp>
 
-                    <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <AppleButton label="Continue to StreetVoice" onClick={() => navigate('/login?portal=citizen')} />
-                        <button 
-                            onClick={() => navigate('/login?portal=authority')}
-                            className="rounded-full border border-white/15 text-white text-sm font-semibold px-5 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-1.5 transition-colors"
-                        >
-                            <span>Talk to authorities</span>
-                            <ChevronRight size={14} />
-                        </button>
+                        {/* Col 2: Top Contributors */}
+                        <FadeUp delay={0.1} style={{ flex: 1 }}>
+                            <div className="sv-tri-col-item" style={{ paddingRight: 28, borderRight: `2px solid ${C.border}`, marginRight: 28, paddingBottom: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <Trophy size={17} style={{ color: '#FFB300' }} />
+                                        <h3 style={{ fontWeight: 900, fontSize: '1.05rem', textTransform: 'uppercase', margin: 0 }}>Top Contributors</h3>
+                                    </div>
+                                    <span style={{ fontSize: '0.7rem', color: C.muted, fontWeight: 600 }}>This Month</span>
+                                </div>
+                                {contributors.map((c, i) => (
+                                    <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i < contributors.length - 1 ? `1px solid #e0d8ce` : 'none' }}>
+                                        <span style={{ width: 20, height: 20, borderRadius: '50%', background: i < 3 ? C.red : '#e0d8ce', color: i < 3 ? '#fff' : C.ink, fontWeight: 800, fontSize: '0.72rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            {c.rank}
+                                        </span>
+                                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e0d8ce', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem', flexShrink: 0 }}>
+                                            {c.name[0]}
+                                        </div>
+                                        <span style={{ flex: 1, fontWeight: 600, fontSize: '0.83rem' }}>{c.name}</span>
+                                        <span style={{ fontWeight: 800, fontSize: '0.83rem', color: C.red }}>{c.xp}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </FadeUp>
+
+                        {/* Col 3: Authorities */}
+                        <FadeUp delay={0.2} style={{ flex: 1 }}>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                                    <Building2 size={17} />
+                                    <h3 style={{ fontWeight: 900, fontSize: '1.05rem', textTransform: 'uppercase', margin: 0 }}>For Municipal Authorities</h3>
+                                </div>
+                                <p style={{ fontSize: '0.8rem', color: C.subtle, lineHeight: 1.6, marginBottom: 14 }}>
+                                    A dedicated control center to manage tickets, track SLAs and gain insights for smarter cities.
+                                </p>
+                                {authorityFeatures.map(f => (
+                                    <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
+                                        <CheckCircle2 size={14} style={{ color: '#2e7d32', flexShrink: 0 }} />
+                                        <span style={{ fontSize: '0.8rem', color: '#333' }}>{f}</span>
+                                    </div>
+                                ))}
+                                <button
+                                    onClick={() => navigate('/login?portal=authority')}
+                                    style={{ marginTop: 14, background: 'none', border: `2px solid ${C.ink}`, borderRadius: 6, padding: '8px 18px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', color: C.ink, display: 'flex', alignItems: 'center', gap: 6 }}
+                                >
+                                    Learn More <ArrowRight size={13} />
+                                </button>
+                            </div>
+                        </FadeUp>
                     </div>
-                </motion.div>
+                </div>
             </section>
+
+            {/* ════════════════════════ BOTTOM CTA ════════════════════════ */}
+            <section ref={ctaRef} style={{ background: C.ink, color: '#fff', borderBottom: `3px solid ${C.red}`, overflow: 'hidden' }}>
+                <div className="sv-cta-row" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'stretch', minHeight: 180 }}>
+                    {/* Left: italic headline + crowd art */}
+                    <FadeUp style={{ flex: '0 0 auto', display: 'flex', alignItems: 'flex-end' }}>
+                        <div style={{ padding: '32px 32px 0', display: 'flex', alignItems: 'flex-end', gap: 12 }}>
+                            <div style={{ fontWeight: 900, fontSize: 'clamp(1.5rem, 4.5vw, 2.6rem)', textTransform: 'uppercase', lineHeight: 1.0, letterSpacing: '-1px', fontStyle: 'italic', paddingBottom: 28 }}>
+                                Let's<br />Build<br />Cleaner<br />Cities<br />Together.
+                            </div>
+                            <img
+                                src="/poster-sections/cta-crowd-art.png"
+                                alt="Community celebration"
+                                style={{ height: 130, objectFit: 'contain', alignSelf: 'flex-end', opacity: 0.8 }}
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                        </div>
+                    </FadeUp>
+
+                    {/* Divider */}
+                    <div style={{ width: 2, background: 'rgba(255,255,255,0.15)', margin: '32px 0', flexShrink: 0 }} />
+
+                    {/* Right: CTA */}
+                    <FadeUp delay={0.12} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                        <div style={{ padding: '40px', textAlign: 'right', maxWidth: 400 }}>
+                            <h2 style={{ fontWeight: 900, fontSize: 'clamp(1.3rem, 2.8vw, 1.9rem)', textTransform: 'uppercase', letterSpacing: '-0.5px', margin: '0 0 12px', lineHeight: 1.1 }}>
+                                A Stronger Community Starts With a Louder Voice.
+                            </h2>
+                            <p style={{ fontSize: '0.86rem', color: 'rgba(255,255,255,0.65)', marginBottom: 22, lineHeight: 1.55 }}>
+                                Be the change in your neighborhood. Report, verify and inspire action.
+                            </p>
+                            <button className="sv-btn-red" onClick={() => navigate('/login?portal=citizen')} style={{ padding: '13px 26px', borderRadius: 6, fontSize: '0.92rem' }}>
+                                Join StreetVoice Today <ArrowRight size={15} />
+                            </button>
+                        </div>
+                    </FadeUp>
+                </div>
+            </section>
+
+            {/* ════════════════════════ FOOTER ════════════════════════ */}
+            <footer style={{ background: C.bg, borderTop: `2px solid ${C.border}`, padding: '40px 24px 24px' }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                    <div className="sv-footer-grid" style={{ display: 'flex', gap: 48, justifyContent: 'space-between', marginBottom: 28, flexWrap: 'wrap' }}>
+                        {/* Brand */}
+                        <div style={{ minWidth: 160 }}>
+                            <div style={{ fontWeight: 900, fontSize: '1.3rem', letterSpacing: '-0.4px', marginBottom: 3 }}>
+                                Street<span style={{ color: C.red }}>Voice</span><span style={{ color: C.red }}> 📣</span>
+                            </div>
+                            <div style={{ fontSize: '0.6rem', color: C.muted, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
+                                Cleaner Cities · Stronger Communities
+                            </div>
+                        </div>
+
+                        {/* Product */}
+                        <div>
+                            <h4 style={{ fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px', color: C.ink }}>Product</h4>
+                            {['Home', 'Explore Issues', 'Leaderboard'].map(l => (
+                                <button key={l} className="sv-footer-link" onClick={() => navigate('/login?portal=citizen')} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', display: 'block', cursor: 'pointer' }}>{l}</button>
+                            ))}
+                        </div>
+
+                        {/* Company */}
+                        <div>
+                            <h4 style={{ fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px', color: C.ink }}>Company</h4>
+                            {['About', 'For Authorities', 'Contact'].map(l => (
+                                <button key={l} className="sv-footer-link" onClick={() => navigate(l === 'For Authorities' ? '/login?portal=authority' : '/login?portal=citizen')} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', display: 'block', cursor: 'pointer' }}>{l}</button>
+                            ))}
+                        </div>
+
+                        {/* Support */}
+                        <div>
+                            <h4 style={{ fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px', color: C.ink }}>Support</h4>
+                            {['Help Center', 'Privacy Policy', 'Terms of Service'].map(l => (
+                                <span key={l} className="sv-footer-link" style={{ display: 'block' }}>{l}</span>
+                            ))}
+                        </div>
+
+                        {/* Social */}
+                        <div>
+                            <h4 style={{ fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px', color: C.ink }}>Follow Us</h4>
+                            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                                {[TwitterIcon, LinkedInIcon, InstagramIcon, YoutubeIcon].map((Icon, i) => (
+                                    <span key={i} className="sv-social-icon"><Icon /></span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ borderTop: `1.5px solid #d0c9be`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+                        <span style={{ fontSize: '0.72rem', color: '#aaa' }}>© 2026 StreetVoice. All rights reserved.</span>
+                        <span style={{ fontSize: '0.72rem', color: '#aaa' }}>Made with ❤️ for better cities</span>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }
