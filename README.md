@@ -83,6 +83,19 @@ streetvoice/
 
 ---
 
+## 🎨 Landing Page Redesign
+
+The home page has been completely rebuilt to match the reference poster design. Key updates include:
+- New **7‑section** scroll layout (Navbar, Hero, How It Works, Live Issues, Gamify & Authorities, Bottom CTA, Footer).
+- Added **creamy/red/black** color palette and vintage styling.
+- Integrated **framer‑motion** scroll‑triggered fade‑up animations.
+- Fully **responsive** for mobile, tablet, and desktop.
+- New image assets extracted from the reference poster and stored in `client/public/poster-sections/` (e.g., `01-navbar.jpg`, `02-hero.jpg`, …).
+- Sticky navbar with mobile drawer and scroll shadow.
+
+These assets are served as static files from the React client’s `public` folder and are included in the Docker build, so the production deployment renders the new landing page automatically.
+
+
 ## 🔄 Detailed Workflows
 
 ### 1. Issue Reporting Workflow (AI + Duplication Check)
